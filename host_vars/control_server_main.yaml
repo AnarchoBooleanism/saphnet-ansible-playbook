@@ -32,7 +32,7 @@ vm_config:
 
   # CPU
   cpu: host # AVX needed for MongoDB (for Komodo)
-  
+
   # cloud-init
   citype: nocloud # "nocloud" for Linux, "configdrive2" for Windows
 

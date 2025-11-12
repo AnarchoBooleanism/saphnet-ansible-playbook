@@ -1,3 +1,4 @@
+---
 nas_hosts:
   hosts:
     nas1:
@@ -55,7 +56,7 @@ dev_servers:
   hosts:
     dev_server:
       ansible_host: dev.pve4.int-net.saphnet.xyz
-  
+
 vpn_servers:
   hosts:
     vpn_server:
