@@ -1,0 +1,30 @@
+name: prod-shell-test
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+    branches:
+      - main
+    paths:
+      - 'prod-shell/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'prod-shell/**'
+
+jobs:
+  build-container:
+    name: Check whether Docker image builds properly
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Set up Docker buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Try building Docker image
+        run: docker build -t prod-shell-build-test ./prod-shell
+
+# TODO: Add tests

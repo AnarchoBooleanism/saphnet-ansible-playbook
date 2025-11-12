@@ -9,14 +9,18 @@ on:
       - main
     paths-ignore:
       - '.github/**' # Avoid issues with Dependabot
+      - 'docs/**'
+      - 'prod-shell/**'
   push:
     branches:
       - main
     paths-ignore:
       - '.github/**'
+      - 'docs/**'
+      - 'prod-shell/**'
 
 jobs:
-  build:
+  lint:
     name: Ansible Lint # Naming the build is important to use it as a status check
     runs-on: ubuntu-latest
     steps:
