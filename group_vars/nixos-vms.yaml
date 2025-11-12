@@ -1,4 +1,3 @@
-
 # Information about version of nixos-cloud-init-installer, to manually update
 nixos_cloudinit_iso_version: v0.1.6
 nixos_cloudinit_iso_name: "nixos-cloud-init-installer-{{ nixos_cloudinit_iso_version }}-x86_64.iso"

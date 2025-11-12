@@ -10,6 +10,10 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "docker"
-    directory: "/prod-shell"
+    directory: "/prod-shell/"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "pip"
+    directory: "/prod-shell/"
     schedule:
       interval: "weekly"
