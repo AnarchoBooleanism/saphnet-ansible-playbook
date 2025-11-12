@@ -1,5 +1,5 @@
 ansible==12.2.0
-ansible-core==2.19.4
+ansible-core==2.20.0
 certifi==2025.11.12
 cffi==2.0.0
 charset-normalizer==3.4.4
