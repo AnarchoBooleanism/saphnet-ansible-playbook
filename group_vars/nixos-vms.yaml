@@ -1,0 +1,17 @@
+
+# Information about version of nixos-cloud-init-installer, to manually update
+nixos_cloudinit_iso_version: v0.1.6
+nixos_cloudinit_iso_name: "nixos-cloud-init-installer-{{ nixos_cloudinit_iso_version }}-x86_64.iso"
+nixos_cloudinit_iso_url: "https://github.com/AnarchoBooleanism/nixos-cloud-init-installer/releases/download/{{ nixos_cloudinit_iso_version }}/{{ nixos_cloudinit_iso_name }}"
+nixos_cloudinit_iso_checksum_algorithm: sha256
+nixos_cloudinit_iso_checksum: dda27a0a12e2452ea2a91a3a2ca7974c4cde84ad1dc3231cb74e380943af50f7
+nixos_cloudinit_user: root
+
+# Important details for deploying with nixos-anywhere and updating flakes
+ssh_port: 22
+uses_impermanence: false
+uses_sopsnix: false
+
+# The Git repository to refer to for NixOS flakes
+nixos_flake_repo: github:anarchobooleanism/saphnet-nixos-configs
+nixos_flake_repo_url: https://github.com/AnarchoBooleanism/saphnet-nixos-configs.git

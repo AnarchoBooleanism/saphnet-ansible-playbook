@@ -1,0 +1,219 @@
+---
+# Default details for all Proxmox VMs (for deployment), as well as suggested defaults for alternative options
+# The configuration assumes you've imported an Ansible vault with the password for the Proxmox user for Ansible, under vault_proxmox_pass
+
+# Generally, these variables listed here are automatically fed into proxmox_vm_defaults, loaded only when used (which can be after merging)
+# This means that you can just override these in your VM-specific config and the details of these defaults automatically change
+# They are either sensible defaults or things that need to be manually set (if specified)
+# Of course, you can just override the use of default VM details by defining them in the details of your VM-specific config
+
+# Proxmox connection details (often the same for all VMs)
+proxmox_host: pve1.int-net.saphnet.xyz # Everything here also exists as options in ansible proxmox collection
+proxmox_host_port: 8006
+proxmox_user: ansible@pam
+proxmox_user_norealm: ansible
+# Make sure to pass in proxmox_pass in your playbook!
+proxmox_node: pve1
+
+# Virtual machine details
+vm_id: 0 # Should be set manually
+vm_name: default-ansible-vm
+vm_description: # Blank by default
+vm_storage: local-zfs
+iso_storage: local
+iso_directory: /var/lib/vz/template/iso # Matches "local"
+cpu_cores: 2
+ram_total: 2048 # Is in MiB
+disk_size: 32 # Is in GiB
+ip_addr: 192.168.8.999 # Should be set manually
+ip_addr_range: 24 # Should be set manually
+ip_gateway: 192.168.8.999 # Should be set manually
+mac_addr: BC:24:11:XX:XX:XX # Should be set manually
+uses_efi: false
+uses_tpm: false
+uses_cloudinit: false
+
+# Default VM hardware settings
+# Anything commented out is generally the default unless it's specified as an optional
+# NOTE: For anything involving disks, you might want to use the community.proxmox.proxmox_disk module first, THEN mount the disk in a subsequent stage!
+proxmox_vm_defaults:
+  vmid: "{{ vm_id }}" # IMPORTANT: You need to set this manually!
+  name: "{{ vm_name }}" # Set this as needed
+  description: "{{ vm_description }}" # Set this as needed
+  # tags: # Set here as needed
+  protection: false
+  state: present
+  timeout: 300 # 5 minutes
+  node: "{{ proxmox_node }}"
+
+  # API details
+  api_host: "{{ proxmox_host }}"
+  api_port: "{{ proxmox_host_port }}"
+  api_user: "{{ proxmox_user }}"
+  api_password: "{{ vault_proxmox_pass }}" # This assumes you import your Ansible vault variables at some point
+
+  # Behavior settings
+  onboot: true # Generally, VMs created with this playbook should be persistent
+  freeze: false
+  ostype: l26 # "l26" means Linux kernel 2.6+
+  localtime: false
+  startdate: now
+  tdf: false
+  # hookscript: # Set here if needed
+
+  # CPU
+  cores: "{{ cpu_cores }}" # This is what you generally want to set
+  sockets: 1
+  # vcpus: 1
+  cpu: x86-64-v2-AES # Set to "host" if certain extensions are needed
+  # cpulimit: 0 # 0 means no limit
+  # cpuunits: 100 # Default, generally equal to other hosts
+  # machine: pc # "pc" means i440fx; set it to "q35" if using PCI passthrough!
+
+  # Memory
+  memory: "{{ ram_total }}"
+  # balloon: "{{ ram_total }}" # Generally should be same as memory
+  # hugepages: # Set here if needed
+
+  # BIOS/UEFI/EFI, boot options
+  bios: "{{ 'ovmf' if uses_efi else 'seabios' }}"
+  boot: order=scsi0;ide2;net0
+  # bootdisk: # Set here if needed
+  efidisk0: "{{ proxmox_vm_efidisk_defaults if uses_efi else omit }}" # proxmox_vm_efidisk_defaults is set later, feel free to override this
+  # smbios: # Set this as needed
+
+  ## cloud-init (if applicable)
+  # citype: nocloud # "nocloud" for Linux, "configdrive2" for Windows
+  # ciupgrade: false
+  # sshkeys: # Set here if needed
+  # ciuser: # Set here if needed
+  # cipassword: # Set here if needed
+  # nameservers: # Set here if needed
+  # searchdomains: # Set here if needed
+  # cicustom: # Set here if needed
+  # ipconfig: # Set here if needed, included is a example config
+  #   net0: "gw={{ ip_gateway }},ip={{ ip_addr }}/{{ ip_addr_range }}"
+
+  ## Cloning (if applicable)
+  # target: pve3 # Set here as needed
+  # clone: example-vm # Set here as needed
+  # format: qcow2
+  # full: true
+  # newid: -1 # This should be set manually
+  # snapname: # Set here if needed
+  # storage: # Set here if needed
+
+  # Disks
+  # NOTE: Use the community.proxmox.proxmox_disk module for disk creation/mounting tasks!
+  scsihw: virtio-scsi-single # Default disk setup, feel free to change
+  # scsi: # Set here as needed
+  ide:
+    # For ide0: Have to do it here when VM is generated, so that SSH keys work right, feel free to override this
+    ide0: "{{ vm_storage + ':cloudinit,media=cdrom' if uses_cloudinit else omit }}"
+    ide2: 'none,media=cdrom' # Make sure to replace this with an ISO name, can be something like "{{ iso_storage }}/example-image.iso"
+  # sata: # Set here as needed
+  # virtio: # Set here as needed
+
+  # Networking
+  net:
+    net0: 'virtio={{ mac_addr }},bridge=vmbr0,firewall=1' # IMPORTANT (SETME): Make sure to set a MAC address here!
+
+  # Hardware
+  acpi: true
+  hotplug: 1 # This is the default, being "network,disk,usb"
+  # usb: # Set here as needed
+  # hostpci: # Set here as needed
+  tpmstate0: "{{ proxmox_vm_tpm_defaults if uses_tpm else omit }}" # proxmox_vm_tpm_defaults is set later, feel free to override this
+  # parallel: # Set here if needed
+  # rng0: # Set here if needed, especially if using network boot!
+
+  # Video
+  vga: qxl # If not using x86_64, probably should use "serial0"
+
+  ## Audio
+  # audio: # For most VMs, this is not needed, but this is an example config
+  #   audio0: 'device="ich9-intel-hda",driver="spice"'
+
+  # Guest integration, virtualization
+  agent: true
+  kvm: true
+  serial:
+    serial0: 'socket'
+  # keyboard: # Set here if needed
+
+  # Other
+  numa_enabled: false
+
+proxmox_vm_efidisk_defaults: # To be set as efidisk0
+  storage: "{{ vm_storage }}"
+  efitype: 4m
+  format: raw
+  pre_enrolled_keys: false # Set this to true if you want to enroll EFI keys upon creation, will enable Secure Boot by default if so
+
+proxmox_vm_tpm_defaults: # To be set as tpmstate0
+  storage: "{{ vm_storage }}"
+  version: '2.0'
+
+# Default VM disk settings
+# Anything commented out is generally the default unless it's specified as an optional
+proxmox_disk_defaults:
+  vmid: "{{ vm_id }}" # IMPORTANT: You need to set this manually!
+  # disk: # An example of what you'd want to set for your main drive: "scsi0"
+  storage: "{{ vm_storage }}"
+  size: "{{ disk_size }}"
+  # format: raw # Is default for zfs systems
+  # media: disk
+  state: present
+  create: regular # Only matters when state = "present"
+
+  # API details
+  api_host: "{{ proxmox_host }}"
+  api_port: "{{ proxmox_host_port }}"
+  api_user: "{{ proxmox_user }}"
+  api_password: "{{ vault_proxmox_pass }}"
+
+  # Behavior
+  # aio: io_uring
+  # backup: true
+  # cache: none
+  # discard: ignore
+  iothread: true
+  # replicate: true # Probably more important if you're doing HA
+  # ro: false
+  # ssd: false
+
+  # Moving (if applicable)
+  # delete_moved: # Set here if needed
+  # target_disk: # Set here if needed
+  # target_storage: # Set here if needed
+  # target_vmid: # Set here if needed
+
+  # Cloning (if applicable)
+  # import_from: # Set here if needed
+
+  # ISO images (if applicable)
+  # iso_image: # Set here if needed, make sure media is "cdrom", example: "local-zfs:iso/nixos-image.iso"
+
+  # Bandwidth limits (if applicable)
+  # bps_max_length: # Set here if needed
+  # bps_rd_max_length: # Set here if needed
+  # bps_wr_max_length: # Set here if needed
+  # bwlimit: # Set here if needed
+  # iops: # Set here if needed
+  # iops_max: # Set here if needed
+  # iops_max_length: # Set here if needed
+  # iops_rd: # Set here if needed
+  # iops_rd_max: # Set here if needed
+  # iops_rd_max_length: # Set here if needed
+  # iops_wr: # Set here if needed
+  # iops_wr_max: # Set here if needed
+  # iops_wr_max_length: # Set here if needed
+  # mbps: # Set here if needed
+  # mbps_max: # Set here if needed
+  # mbps_rd: # Set here if needed
+  # mbps_rd_max: # Set here if needed
+  # mbps_wr: # Set here if needed
+  # mbps_wr_max: # Set here if needed
+
+# For more info: https://docs.ansible.com/ansible/latest/collections/community/proxmox/proxmox_kvm_module.html
+#          also: https://docs.ansible.com/ansible/latest/collections/community/proxmox/proxmox_disk_module.html

@@ -1,0 +1,56 @@
+---
+- name: Create Proxmox VMs with dynamic hardware configurations
+  hosts: localhost
+  connection: local
+  vars:
+    vm_list:
+      - control_server_main
+  vars_files:
+    - ../../secrets/proxmox.yaml
+  tasks:
+    - name: Set final list of VMs to process
+      ansible.builtin.set_fact:
+        final_vm_list: >-
+          {{
+            [target_vm_name]
+            if target_vm_name is defined and target_vm_name in vm_list
+            else vm_list
+          }}
+    - name: Load NixOS-specific configuration file
+      ansible.builtin.include_vars:
+        file: "../../group_vars/nixos-vms.yaml"
+    - name: Create temporary directory for the SSH key for Proxmox from the vault
+      ansible.builtin.tempfile:
+        state: directory
+        prefix: ansible-proxmox-ssh-
+      register: proxmox_ssh_key_directory # To refer to this, use "proxmox_ssh_key_directory.path"
+    - name: Write temporary file for the SSH public key for Proxmox from the vault
+      ansible.builtin.copy: # NOTE: These steps assume ed25519 as the algorithm
+        content: "{{ vault_proxmox_ssh_key_public }}"
+        dest: "{{ proxmox_ssh_key_directory.path }}/id_ed25519.pub"
+        mode: "0600"
+      register: proxmox_ssh_key_public # To refer to this, use "proxmox_ssh_key_public.dest"
+    - name: Write temporary file for the SSH private key for Proxmox from the vault
+      ansible.builtin.copy:
+        content: "{{ vault_proxmox_ssh_key_private }}"
+        dest: "{{ proxmox_ssh_key_directory.path }}/id_ed25519"
+        mode: "0600"
+      register: proxmox_ssh_key_private # To refer to this, use "proxmox_ssh_key_private.dest"
+    - name: Create temporary directory for Git repo for NixOS flake configurations
+      ansible.builtin.tempfile:
+        state: directory
+        prefix: nixos-configs-
+      register: nixos_configs_directory # To refer to this, use "nixos_configs_directory.path"
+    - name: Clone Git repo for NixOS flake configurations
+      ansible.builtin.git:
+        repo: "{{ nixos_flake_repo_url }}"
+        dest: "{{ nixos_configs_directory.path }}"
+    - name: Dynamically create/update each VM # This is the main guts of our logic here
+      include_tasks: internal-loop.yaml
+      loop: "{{ final_vm_list }}"
+      loop_control:
+        loop_var: vm_file
+    - name: Delete temporary directory for Proxmox SSH keys
+      ansible.builtin.file:
+        state: absent
+        path: "{{ proxmox_ssh_key_directory.path }}"

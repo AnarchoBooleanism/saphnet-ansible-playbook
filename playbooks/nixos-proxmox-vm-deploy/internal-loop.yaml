@@ -1,0 +1,214 @@
+---
+# Load variables, establish facts
+- name: Load default VM configuration file
+  ansible.builtin.include_vars:
+    file: "../../group_vars/proxmox-vms.yaml"
+- name: Load VM-specific configuration file
+  ansible.builtin.include_vars:
+    file: "../../host_vars/{{ vm_file }}.yaml"
+- name: Load config-specific secrets
+  ansible.builtin.include_vars:
+    file: "../../secrets/{{ current_file }}.yaml"
+  loop: "{{ secrets_files }}"
+  loop_control:
+    loop_var: current_file
+  when: (secrets_files is defined) and (secrets_files | length > 0)
+- name: Combine VM-specific and default VM configurations
+  ansible.builtin.set_fact:
+    merged_vm_config: "{{ proxmox_vm_defaults | combine(vm_config, recursive=True) }}"
+- name: Set facts for delegate connection # We need to do this so that we can use hostvars with this, for the SSH tasks to actually work...
+  ansible.builtin.set_fact:
+    delegate_ssh_key_file: "{{ proxmox_ssh_key_private.dest }}"
+    delegate_user: "{{ proxmox_user_norealm }}"
+    delegate_host: "{{ proxmox_host }}"
+
+# Create temporary SSH keys for nixos-anywhere
+- name: Create temporary directory for temporary SSH keys
+  ansible.builtin.tempfile:
+    state: directory
+    prefix: nixos-cloud-init-ssh-
+  register: temp_ssh_key_directory # To refer to this, use "temp_ssh_key_directory.path"
+- name: Create temporary SSH keys for cloud-init and nixos-anywhere
+  community.crypto.openssh_keypair:
+    path: "{{ temp_ssh_key_directory.path }}/id_ed25519"
+    type: ed25519
+    comment: Temp SSH key from ansible
+  register: temp_ssh_key # "temp_ssh_key.filename" for private key path, "temp_ssh_key.public_key" for public key itself
+
+# Make sure the installer image is ready
+- name: Make sure nixos-cloud-init-installer exists on Proxmox host
+  block:
+    - name: Check whether nixos-cloud-init-installer ISO exists
+      ansible.builtin.stat:
+        path: "{{ iso_directory }}/{{ nixos_cloudinit_iso_name }}"
+      register: nixos_cloudinit_iso_file
+      become: true
+    - name: Download nixos-cloud-init-installer ISO if not there
+      ansible.builtin.get_url:
+        url: "{{ nixos_cloudinit_iso_url }}"
+        dest: "{{ iso_directory }}/{{ nixos_cloudinit_iso_name }}"
+        checksum: "{{ nixos_cloudinit_iso_checksum_algorithm }}:{{ nixos_cloudinit_iso_checksum }}"
+      when: not nixos_cloudinit_iso_file.stat.exists
+      become: true
+  vars:
+    ansible_user: "{{ hostvars[inventory_hostname]['delegate_user'] }}"
+    ansible_connection: ssh
+    ansible_ssh_private_key_file: "{{ hostvars[inventory_hostname]['delegate_ssh_key_file'] }}"
+    ansible_become_pass: "{{ vault_proxmox_pass }}"
+  delegate_facts: true
+  delegate_to: "{{ hostvars[inventory_hostname]['delegate_host'] }}"
+
+# Set up Proxmox VM and start it
+- name: Create VM "{{ vm_name }}" using proxmox_kvm
+  community.proxmox.proxmox_kvm: "{{ merged_vm_config }}"
+- name: Create the disks for VM
+  community.proxmox.proxmox_disk: "{{ merged_disk_config }}"
+  vars:
+    merged_disk_config: "{{ proxmox_disk_defaults | combine(item) }}"
+  loop: "{{ disks }}"
+  loop_control:
+    label: "vmid {{ merged_disk_config.vmid }}, disk {{ merged_disk_config.disk }}"
+- name: Prepare VM for installation, with cloud-init details and nixos-cloud-init-installer image
+  community.proxmox.proxmox_kvm:
+    api_host: "{{ proxmox_host }}"
+    api_user: "{{ proxmox_user }}"
+    api_password: "{{ vault_proxmox_pass }}"
+    node: "{{ proxmox_node }}"
+    vmid: "{{ vm_id }}"
+    sshkeys: "{{ lookup('file', temp_ssh_key_directory.path + '/id_ed25519.pub') }}"
+    ipconfig:
+      ipconfig0: "gw={{ ip_gateway }},ip={{ ip_addr }}/{{ ip_addr_range }}"
+    ide:
+      ide2: '{{ iso_storage }}:iso/{{ nixos_cloudinit_iso_name }},media=cdrom'
+    update: true
+    update_unsafe: true
+- name: Start VM for installation
+  community.proxmox.proxmox_kvm:
+    api_host: "{{ proxmox_host }}"
+    api_user: "{{ proxmox_user }}"
+    api_password: "{{ vault_proxmox_pass }}"
+    node: "{{ proxmox_node }}"
+    vmid: "{{ vm_id }}"
+    state: started
+
+# Start nixos-anywhere
+- name: After waiting 30 seconds, check if remote host reachable within 5 minutes
+  ansible.builtin.wait_for:
+    host: "{{ ip_addr }}"
+    port: "{{ ssh_port }}"
+    delay: 30
+    timeout: 300
+- name: Create temporary directory to be added by nixos-anywhere
+  ansible.builtin.tempfile:
+    state: directory
+    prefix: nixos-anywhere-extras-
+  register: nixos_anywhere_extras_directory # To refer to this, use "nixos_anywhere_extras_directory.path"
+- name: Create SSH and sops-nix key files to be imported by nixos-anywhere
+  when: uses_sopsnix
+  block:
+    - name: Creates sops-nix subdirectory in temporary directory
+      ansible.builtin.file:
+        path: "{{ nixos_anywhere_extras_directory.path }}\
+          {{ '/persist' if uses_impermanence else '' }}\
+          /var/lib/sops-nix/"
+        state: directory
+    - name: Creates SSH subdirectory in temporary directory
+      ansible.builtin.file:
+        path: "{{ nixos_anywhere_extras_directory.path }}\
+          {{ '/persist' if uses_impermanence else '' }}\
+          /etc/ssh"
+        state: directory
+    - name: Add sops-nix age key, for nixos-anywhere
+      ansible.builtin.copy:
+        content: "{{ vault_sops_nix_age_key }}"
+        dest: "{{ nixos_anywhere_extras_directory.path }}\
+          {{ '/persist' if uses_impermanence else '' }}\
+          /var/lib/sops-nix/keys.txt"
+        mode: "0600"
+    - name: Add ed25519 SSH private key, for nixos-anywhere
+      ansible.builtin.copy:
+        content: "{{ vault_nixos_ssh_ed25519_key_private }}"
+        dest: "{{ nixos_anywhere_extras_directory.path }}\
+          {{ '/persist' if uses_impermanence else '' }}\
+          /etc/ssh/ssh_host_ed25519_key"
+        mode: "0600"
+    - name: Add ed25519 SSH public key, for nixos-anywhere
+      ansible.builtin.copy:
+        content: "{{ vault_nixos_ssh_ed25519_key_public }}"
+        dest: "{{ nixos_anywhere_extras_directory.path }}\
+          {{ '/persist' if uses_impermanence else '' }}\
+          /etc/ssh/ssh_host_ed25519_key.pub"
+        mode: "0600"
+    - name: Add RSA SSH private key, for nixos-anywhere
+      ansible.builtin.copy:
+        content: "{{ vault_nixos_ssh_rsa_key_private }}"
+        dest: "{{ nixos_anywhere_extras_directory.path }}\
+          {{ '/persist' if uses_impermanence else '' }}\
+          /etc/ssh/ssh_host_rsa_key"
+        mode: "0600"
+    - name: Add RSA SSH public key, for nixos-anywhere
+      ansible.builtin.copy:
+        content: "{{ vault_nixos_ssh_rsa_key_public }}"
+        dest: "{{ nixos_anywhere_extras_directory.path }}\
+          {{ '/persist' if uses_impermanence else '' }}\
+          /etc/ssh/ssh_host_rsa_key.pub"
+        mode: "0600"
+- ansible.builtin.debug:
+    msg: |
+      Running this command, you might not see anything in the output for a while as it runs:
+      nix run github:nix-community/nixos-anywhere -- \
+      --flake {{ nixos_configs_directory.path }}#{{ nixos_config_name }} \
+      --generate-hardware-config nixos-generate-config {{ nixos_configs_directory.path + '/machines/control-server/hardware-configuration.nix' | quote}} \
+      -i "{{ temp_ssh_key_directory.path + '/id_ed25519' | quote }}" -p {{ ssh_port }} \
+      --target-host {{ nixos_cloudinit_user }}@{{ ip_addr }} \
+      --extra-files {{ nixos_anywhere_extras_directory.path | quote }}
+- name: Run nixos-anywhere
+  ansible.builtin.shell: |
+    nix run github:nix-community/nixos-anywhere -- \
+    --flake {{ nixos_configs_directory.path }}#{{ nixos_config_name }} \
+    --generate-hardware-config nixos-generate-config {{ nixos_configs_directory.path + '/machines/control-server/hardware-configuration.nix' | quote}} \
+    -i "{{ temp_ssh_key_directory.path + '/id_ed25519' | quote }}" -p {{ ssh_port }} \
+    --target-host {{ nixos_cloudinit_user }}@{{ ip_addr }} \
+    --extra-files {{ nixos_anywhere_extras_directory.path | quote }}
+
+# Clean up after deploying and restart
+- name: Pause for 60 seconds before waiting to turn off VM
+  ansible.builtin.pause:
+    seconds: 60
+- name: Stop VM
+  community.proxmox.proxmox_kvm:
+    api_host: "{{ proxmox_host }}"
+    api_user: "{{ proxmox_user }}"
+    api_password: "{{ vault_proxmox_pass }}"
+    node: "{{ proxmox_node }}"
+    vmid: "{{ vm_id }}"
+    state: stopped
+- name: Pause for 60 seconds to allow for natural shutdown
+  ansible.builtin.pause:
+    seconds: 60
+- name: Remove cloud-init details and nixos-cloud-init-installer ISO from VM
+  community.proxmox.proxmox_kvm:
+    api_host: "{{ proxmox_host }}"
+    api_user: "{{ proxmox_user }}"
+    api_password: "{{ vault_proxmox_pass }}"
+    node: "{{ proxmox_node }}"
+    vmid: "{{ vm_id }}"
+    sshkeys: ""
+    ipconfig:
+      ipconfig0:
+    ide:
+      ide2: 'none,media=cdrom'
+    update: true
+    update_unsafe: true
+- name: Start VM
+  community.proxmox.proxmox_kvm:
+    api_host: "{{ proxmox_host }}"
+    api_user: "{{ proxmox_user }}"
+    api_password: "{{ vault_proxmox_pass }}"
+    node: "{{ proxmox_node }}"
+    vmid: "{{ vm_id }}"
+    state: started
+- name: Delete temporary directory for nixos-anywhere files
+  ansible.builtin.file:
+    state: absent
+    path: "{{ nixos_anywhere_extras_directory.path }}"

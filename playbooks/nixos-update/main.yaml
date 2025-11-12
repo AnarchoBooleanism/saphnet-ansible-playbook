@@ -1,0 +1,5 @@
+---
+# TODO: Figure out how you'd update to remote repository here
+# TODO: Maybe something like nixos-rebuild switch --target-host saphnet-user@HOST --use-remote-sudo --flake FLAKENAME
+# TODO: Ping the IP, make sure it's connectable, if not then fail here
+# TODO: Consider SSH key, probably just grab from Ansible vault and store to a temp directory

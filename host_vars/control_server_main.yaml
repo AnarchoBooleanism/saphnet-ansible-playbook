@@ -1,0 +1,46 @@
+---
+# Control server for Ansible and Komodo, using NixOS
+# Config-specific
+secrets_files:
+  - control-server
+
+# Hypervisor-specific
+proxmox_host: pve1.int-net.saphnet.xyz
+proxmox_host_port: 8006
+proxmox_node: pve1
+vm_id: 101
+vm_name: control-server
+vm_description: NixOS VM serving as a Komodo and Semaphore (Ansible) control server
+mac_addr: BC:24:11:EA:FE:1A
+ip_addr: 192.168.8.211
+ip_addr_range: 24
+ip_gateway: 192.168.8.1
+ssh_port: 22
+cpu_cores: 1
+ram_total: 1024 # Is in MiB
+disk_size: 64 # Is in GiB
+vm_storage: local-zfs
+iso_storage: sdcard
+iso_directory: /mnt/sdcard/template/iso # Matches "sdcard"
+uses_impermanence: true
+uses_sopsnix: true
+uses_cloudinit: true
+
+vm_config:
+  # Main
+  tags: nixos
+
+  # CPU
+  cpu: host # AVX needed for MongoDB (for Komodo)
+  
+  # cloud-init
+  citype: nocloud # "nocloud" for Linux, "configdrive2" for Windows
+
+disks:
+  - vmid: "{{ vm_id }}" # Main drive
+    disk: scsi0
+    storage: "{{ vm_storage }}"
+    size: "{{ disk_size }}"
+
+# System-specific
+nixos_config_name: "control-server" # Make sure group_vars/nixos-vms.yaml is imported first

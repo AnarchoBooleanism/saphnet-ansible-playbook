@@ -1,0 +1,69 @@
+nas_hosts:
+  hosts:
+    nas1:
+      ansible_host: nas1.int-net.saphnet.xyz
+
+pve_host_main: # Should be singleton
+  hosts:
+    pve1:
+      ansible_host: pve1.int-net.saphnet.xyz
+
+pve_hosts:
+  hosts:
+    pve3:
+      ansible_host: pve3.int-net.saphnet.xyz
+    pve4:
+      ansible_host: pve4.int-net.saphnet.xyz
+  children:
+    pve_host_main:
+
+control_server: # Should be singleton
+  hosts:
+    control_server_main:
+      ansible_host: control_server.int-net.saphnet.xyz
+
+vps_main: # Should be singleton
+  hosts:
+    vps1:
+      ansible_host: vps1.saphnet.xyz
+
+vps_hosts:
+  children:
+    vps_main:
+
+int_nginx_server: # Should be singleton
+  hosts:
+    nginx:
+      ansible_host: nginx.pve1.int-net.saphnet.xyz
+
+docker_generic_vms:
+  hosts:
+    docker_main_pve1:
+      ansible_host: docker-main.pve1.int-net.saphnet.xyz
+    docker_main_pve3:
+      ansible_host: docker-main.pve3.int-net.saphnet.xyz
+    docker_main_pve4:
+      ansible_host: docker-main.pve4.int-net.saphnet.xyz
+
+docker_vms:
+  children:
+    vps_main:
+    int_nginx_server:
+    docker_generic_vm:
+
+dev_servers:
+  hosts:
+    dev_server:
+      ansible_host: dev.pve4.int-net.saphnet.xyz
+  
+vpn_servers:
+  hosts:
+    vpn_server:
+      ansible_host: vpn.int-net.saphnet.xyz
+
+nixos_hosts:
+  children:
+    docker_generic_vms:
+    control_server:
+    # int_nginx_server: # TODO: Work on these after generic VMs
+    # vpn_servers:
