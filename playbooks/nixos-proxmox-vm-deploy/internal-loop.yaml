@@ -158,7 +158,7 @@
       Running this command, you might not see anything in the output for a while as it runs:
       nix run github:nix-community/nixos-anywhere -- \
       --flake {{ nixos_configs_directory.path }}#{{ nixos_config_name }} \
-      --generate-hardware-config nixos-generate-config {{ nixos_configs_directory.path + '/machines/control-server/hardware-configuration.nix' | quote}} \
+      --generate-hardware-config nixos-generate-config {{ nixos_configs_directory.path + '/instances/{{ nixos_config_name }}/hardware-configuration.nix' | quote}} \
       -i "{{ temp_ssh_key_directory.path + '/id_ed25519' | quote }}" -p {{ ssh_port }} \
       --target-host {{ nixos_cloudinit_user }}@{{ ip_addr }} \
       --extra-files {{ nixos_anywhere_extras_directory.path | quote }}
@@ -166,7 +166,7 @@
   ansible.builtin.shell: |
     nix run github:nix-community/nixos-anywhere -- \
     --flake {{ nixos_configs_directory.path }}#{{ nixos_config_name }} \
-    --generate-hardware-config nixos-generate-config {{ nixos_configs_directory.path + '/machines/control-server/hardware-configuration.nix' | quote}} \
+    --generate-hardware-config nixos-generate-config {{ nixos_configs_directory.path + '/instances/{{ nixos_config_name }}/hardware-configuration.nix' | quote}} \
     -i "{{ temp_ssh_key_directory.path + '/id_ed25519' | quote }}" -p {{ ssh_port }} \
     --target-host {{ nixos_cloudinit_user }}@{{ ip_addr }} \
     --extra-files {{ nixos_anywhere_extras_directory.path | quote }}
