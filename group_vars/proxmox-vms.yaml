@@ -22,6 +22,7 @@ vm_description: # Blank by default
 vm_storage: local-zfs
 iso_storage: local
 iso_directory: /var/lib/vz/template/iso # Matches "local"
+cpu_limit: 1 # Is from 0.0-1.0, will be multiplied by core count in vm_config
 cpu_cores: 2
 ram_total: 2048 # Is in MiB
 disk_size: 32 # Is in GiB
@@ -66,9 +67,9 @@ proxmox_vm_defaults:
   sockets: 1
   # vcpus: 1
   cpu: x86-64-v2-AES # Set to "host" if certain extensions are needed
-  # cpulimit: 0 # 0 means no limit
+  cpulimit: "{{ cpu_limit * cpu_cores }}"
   # cpuunits: 100 # Default, generally equal to other hosts
-  # machine: pc # "pc" means i440fx; set it to "q35" if using PCI passthrough!
+  machine: q35 # "pc" means i440fx; q35 allows using PCI passthrough!
 
   # Memory
   memory: "{{ ram_total }}"
@@ -123,6 +124,8 @@ proxmox_vm_defaults:
   hotplug: 1 # This is the default, being "network,disk,usb"
   # usb: # Set here as needed
   # hostpci: # Set here as needed
+  #   hostpci0: "mapping=arc-a310-gpu,pcie=1" # Example from docker_host_pve3, since we're not root, we NEED to use mapped devices!
+  #   hostpci1: "mapping=arc-a310-audio,pcie=1"
   tpmstate0: "{{ proxmox_vm_tpm_defaults if uses_tpm else omit }}" # proxmox_vm_tpm_defaults is set later, feel free to override this
   # parallel: # Set here if needed
   # rng0: # Set here if needed, especially if using network boot!
@@ -176,11 +179,11 @@ proxmox_disk_defaults:
   # aio: io_uring
   # backup: true
   # cache: none
-  # discard: ignore
+  discard: on # Allows for smaller virtual disk sizes
   iothread: true
   # replicate: true # Probably more important if you're doing HA
   # ro: false
-  # ssd: false
+  ssd: true # Our setup generally consists of SSDs, so we are using this
 
   # Moving (if applicable)
   # delete_moved: # Set here if needed

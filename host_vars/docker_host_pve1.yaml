@@ -1,23 +1,23 @@
 ---
-# Control server for Ansible and Komodo, using NixOS
+# Docker host on node pve1
 # Config-specific
 secrets_files:
-  - control-server
+  - docker-host-pve1
 
 # Hypervisor-specific
 proxmox_host: pve1.int-net.saphnet.xyz
 proxmox_host_port: 8006
 proxmox_node: pve1
-vm_id: 101
-vm_name: control-server
-vm_description: NixOS VM serving as a Komodo and Semaphore (Ansible) control server
-mac_addr: BC:24:11:EA:FE:1A
-ip_addr: 192.168.8.211
+vm_id: 102
+vm_name: docker-host-pve1
+vm_description: Docker host on node pve1
+mac_addr: BC:24:11:C9:C7:05
+ip_addr: 192.168.8.116
 ip_addr_range: 24
 ip_gateway: 192.168.8.1
 ssh_port: 22
-cpu_cores: 1
-ram_total: 1024 # Is in MiB
+cpu_cores: 4
+ram_total: 4096 # Is in MiB
 disk_size: 64 # Is in GiB
 vm_storage: local-zfs
 iso_storage: sdcard
@@ -31,7 +31,7 @@ vm_config:
   tags: nixos
 
   # CPU
-  cpu: host # AVX needed for MongoDB (for Komodo)
+  cpu: host # Is only on single node, better to have all instructions available
 
   # cloud-init
   citype: nocloud # "nocloud" for Linux, "configdrive2" for Windows
@@ -45,4 +45,4 @@ disks:
     mbps_wr: 375
 
 # System-specific
-nixos_config_name: "control-server" # Make sure group_vars/nixos-vms.yaml is imported first
+nixos_config_name: "docker-host-pve1" # Make sure group_vars/nixos-vms.yaml is imported first

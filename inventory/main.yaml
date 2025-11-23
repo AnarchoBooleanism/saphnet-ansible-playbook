@@ -66,5 +66,5 @@ nixos_hosts:
   children:
     docker_generic_vms:
     control_server:
-    # int_nginx_server: # TODO: Work on these after generic VMs
-    # vpn_servers:
+    int_nginx_server:
+    # vpn_servers: # TODO: Work on these after generic VMs

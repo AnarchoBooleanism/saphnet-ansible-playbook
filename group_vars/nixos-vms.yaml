@@ -9,6 +9,7 @@ nixos_cloudinit_iso_checksum: dda27a0a12e2452ea2a91a3a2ca7974c4cde84ad1dc3231cb7
 nixos_cloudinit_user: root
 
 # Important details for deploying with nixos-anywhere and updating flakes
+nixos_anywhere_build_remotely: false # You're free to enable this if the target system is powerful enough, or if building locally causes problems
 ssh_port: 22
 uses_impermanence: false
 uses_sopsnix: false

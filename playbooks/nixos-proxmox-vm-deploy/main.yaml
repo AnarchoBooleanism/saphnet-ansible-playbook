@@ -5,6 +5,10 @@
   vars:
     vm_list:
       - control_server_main
+      - docker_host_nginx
+      - docker_host_pve1
+      - docker_host_pve3
+      - docker_host_pve4
   vars_files:
     - ../../secrets/proxmox.yaml
   tasks:
@@ -13,7 +17,7 @@
         final_vm_list: >-
           {{
             [target_vm_name]
-            if target_vm_name is defined and target_vm_name in vm_list
+            if target_vm_name is defined
             else vm_list
           }}
     - name: Load NixOS-specific configuration file
@@ -36,15 +40,20 @@
         dest: "{{ proxmox_ssh_key_directory.path }}/id_ed25519"
         mode: "0600"
       register: proxmox_ssh_key_private # To refer to this, use "proxmox_ssh_key_private.dest"
-    - name: Create temporary directory for Git repo for NixOS flake configurations
-      ansible.builtin.tempfile:
-        state: directory
-        prefix: nixos-configs-
-      register: nixos_configs_directory # To refer to this, use "nixos_configs_directory.path"
+    # - name: Create temporary directory for Git repo for NixOS flake configurations
+    #   ansible.builtin.tempfile:
+    #     state: directory
+    #     prefix: nixos-configs-
+    #   register: nixos_configs_directory # To refer to this, use "nixos_configs_directory.path"
+    - name: Establish directory for Git repo for NixOS flakes configurations
+      ansible.builtin.set_fact:
+        nixos_configs_directory:
+          path: "../../saphnet-nixos-configs" # To refer to this, use "nixos_configs_directory.path"
     - name: Clone Git repo for NixOS flake configurations
       ansible.builtin.git:
         repo: "{{ nixos_flake_repo_url }}"
         dest: "{{ nixos_configs_directory.path }}"
+        force: true # Be sure to check for any changed hardware-configuation.nix files beforehand...
     - name: Dynamically create/update each VM # This is the main guts of our logic here
       include_tasks: internal-loop.yaml
       loop: "{{ final_vm_list }}"

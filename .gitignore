@@ -1,5 +1,7 @@
 tmp
+tmp-**
 collections
 galaxy_cache
 galaxy_token
 ansible_venv
+saphnet-nixos-configs

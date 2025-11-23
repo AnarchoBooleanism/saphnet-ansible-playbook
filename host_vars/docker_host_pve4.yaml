@@ -1,0 +1,54 @@
+---
+# Docker host on node pve4
+# Config-specific
+secrets_files:
+  - docker-host-pve4
+
+# Hypervisor-specific
+proxmox_host: pve4.int-net.saphnet.xyz
+proxmox_host_port: 8006
+proxmox_node: pve4
+vm_id: 112
+vm_name: docker-host-pve4
+vm_description: Docker host on node pve4
+mac_addr: BC:24:11:F2:D3:D4
+ip_addr: 192.168.8.243
+ip_addr_range: 24
+ip_gateway: 192.168.8.1
+ssh_port: 22
+cpu_limit: 1 # For some reason, cpulimit is an integer?
+# cpu_limit: 0.9 # We use all the cores, trying to let other processes be able to run if maxing out
+cpu_cores: 8
+ram_total: 12288 # Is in MiB
+disk_size: 128 # Is in GiB
+vm_storage: local-zfs
+iso_storage: local
+iso_directory: /var/lib/vz/template/iso # Matches "local"
+uses_efi: true # For any future PCI passthrough
+uses_impermanence: true
+uses_sopsnix: true
+uses_cloudinit: true
+
+vm_config:
+  # Main
+  tags: nixos
+
+  # CPU
+  cpu: host # Is only on single node, better to have all instructions available
+
+  # For any future PCI passthrough
+  machine: q35
+
+  # cloud-init
+  citype: nocloud # "nocloud" for Linux, "configdrive2" for Windows
+
+disks:
+  - vmid: "{{ vm_id }}" # Main drive
+    disk: scsi0
+    storage: "{{ vm_storage }}"
+    size: "{{ disk_size }}"
+    mbps_rd: 375 # We use SATA SSDs, so we want to stick to 3Gbps to avoid hogging disk IO
+    mbps_wr: 375
+
+# System-specific
+nixos_config_name: "docker-host-pve4" # Make sure group_vars/nixos-vms.yaml is imported first

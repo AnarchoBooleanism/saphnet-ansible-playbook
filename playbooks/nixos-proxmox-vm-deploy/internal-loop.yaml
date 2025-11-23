@@ -153,23 +153,26 @@
           {{ '/persist' if uses_impermanence else '' }}\
           /etc/ssh/ssh_host_rsa_key.pub"
         mode: "0600"
-- ansible.builtin.debug:
-    msg: |
-      Running this command, you might not see anything in the output for a while as it runs:
+- name: Create file for log for nixos-anywhere
+  ansible.builtin.tempfile:
+    path: "../../tmp-logs"
+    prefix: "nixos-anywhere-log-"
+  register: nixos_anywhere_log_file # To refer to this, use "nixos_anywhere_extras_directory.path"
+- name: Generate command for nixos-anywhere
+  ansible.builtin.set_fact:
+    nixos_anywhere_command: |
       nix run github:nix-community/nixos-anywhere -- \
       --flake {{ nixos_configs_directory.path }}#{{ nixos_config_name }} \
-      --generate-hardware-config nixos-generate-config {{ nixos_configs_directory.path + '/instances/{{ nixos_config_name }}/hardware-configuration.nix' | quote}} \
+      --generate-hardware-config nixos-generate-config {{ nixos_configs_directory.path + '/instances/' + nixos_config_name + '/hardware-configuration.nix' | quote}} \
       -i "{{ temp_ssh_key_directory.path + '/id_ed25519' | quote }}" -p {{ ssh_port }} \
       --target-host {{ nixos_cloudinit_user }}@{{ ip_addr }} \
-      --extra-files {{ nixos_anywhere_extras_directory.path | quote }}
-- name: Run nixos-anywhere
-  ansible.builtin.shell: |
-    nix run github:nix-community/nixos-anywhere -- \
-    --flake {{ nixos_configs_directory.path }}#{{ nixos_config_name }} \
-    --generate-hardware-config nixos-generate-config {{ nixos_configs_directory.path + '/instances/{{ nixos_config_name }}/hardware-configuration.nix' | quote}} \
-    -i "{{ temp_ssh_key_directory.path + '/id_ed25519' | quote }}" -p {{ ssh_port }} \
-    --target-host {{ nixos_cloudinit_user }}@{{ ip_addr }} \
-    --extra-files {{ nixos_anywhere_extras_directory.path | quote }}
+      --extra-files {{ nixos_anywhere_extras_directory.path | quote }} \
+      --build-on {{ 'remote' if nixos_anywhere_build_remotely else 'auto' }} \
+      > {{ nixos_anywhere_log_file.path }} 2>&1 # Because Ansible does not print output in real time
+- ansible.builtin.debug:
+    msg: "nixos-anywhere may take a while to run, and you won't see any output here in the meanwhile. To see its output in real-time, check the file {{ nixos_anywhere_log_file.path }}"
+- name: Run nixos-anywhere, you might not see anything in the output for a while as it runs
+  ansible.builtin.shell: "{{ nixos_anywhere_command }}"
 
 # Clean up after deploying and restart
 - name: Pause for 60 seconds before waiting to turn off VM
@@ -187,7 +190,7 @@
   ansible.builtin.pause:
     seconds: 60
 - name: Remove cloud-init details and nixos-cloud-init-installer ISO from VM
-  community.proxmox.proxmox_kvm:
+  community.proxmox.proxmox_kvm: # NOTE: This doesn't actually erase cloud-init info...
     api_host: "{{ proxmox_host }}"
     api_user: "{{ proxmox_user }}"
     api_password: "{{ vault_proxmox_pass }}"
