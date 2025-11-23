@@ -213,7 +213,7 @@
       ansible.builtin.command: |
         tailscale up --advertise-exit-node --auth-key={{ vault_tailscale_auth_key }}
 
-    # Set up Netdata, Glances
+    # Set up Netdata
     - name: Copy stream.conf file for Netdata
       ansible.builtin.template:
         src: ../../common_files/netdata/stream-child.conf.j2
@@ -223,19 +223,6 @@
         name: netdata
         state: started
         enabled: true
-    - name: Create directory for Glances
-      ansible.builtin.file:
-        path: /var/lib/glances
-        state: directory
-    - name: Copy Docker Compose file for Glances
-      ansible.builtin.copy:
-        src: ../../common_files/glances/compose.yaml
-        dest: /var/lib/glances/compose.yaml
-    - name: Start Glances service
-      community.docker.docker_compose_v2:
-        project_name: glances
-        project_src: /var/lib/glances
-        state: present
 
     # Set up Komodo Periphery
     - name: Create directory for Komodo Periphery
