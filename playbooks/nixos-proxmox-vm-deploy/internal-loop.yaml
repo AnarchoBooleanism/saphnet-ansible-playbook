@@ -163,14 +163,17 @@
     nixos_anywhere_command: |
       nix run github:nix-community/nixos-anywhere -- \
       --flake {{ nixos_configs_directory.path }}#{{ nixos_config_name }} \
-      --generate-hardware-config nixos-generate-config {{ nixos_configs_directory.path + '/instances/' + nixos_config_name + '/hardware-configuration.nix' | quote}} \
+      --generate-hardware-config nixos-generate-config \
+        {{ nixos_configs_directory.path + '/instances/' + nixos_config_name + '/hardware-configuration.nix' | quote}} \
       -i "{{ temp_ssh_key_directory.path + '/id_ed25519' | quote }}" -p {{ ssh_port }} \
       --target-host {{ nixos_cloudinit_user }}@{{ ip_addr }} \
       --extra-files {{ nixos_anywhere_extras_directory.path | quote }} \
       --build-on {{ 'remote' if nixos_anywhere_build_remotely else 'auto' }} \
       > {{ nixos_anywhere_log_file.path }} 2>&1 # Because Ansible does not print output in real time
 - ansible.builtin.debug:
-    msg: "nixos-anywhere may take a while to run, and you won't see any output here in the meanwhile. To see its output in real-time, check the file {{ nixos_anywhere_log_file.path }}"
+    msg: |
+      nixos-anywhere may take a while to run, and you won't see any output here in the meanwhile.
+      To see its output in real-time, check the file {{ nixos_anywhere_log_file.path }}
 - name: Run nixos-anywhere, you might not see anything in the output for a while as it runs
   ansible.builtin.shell: "{{ nixos_anywhere_command }}"
 
