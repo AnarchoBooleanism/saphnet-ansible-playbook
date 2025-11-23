@@ -105,7 +105,7 @@
     - name: Update and upgrade apt packages
       ansible.builtin.apt:
         upgrade: yes
-        update_cache: yes
+        update_cache: true
         cache_valid_time: 86400
     - name: Install various packages
       ansible.builtin.apt:
