@@ -17,6 +17,11 @@ updates:
     directory: "/prod-shell/"
     schedule:
       interval: "weekly"
+    groups:
+      ansible:
+        patterns:
+          - "ansible"
+          - "ansible-core"
   - package-ecosystem: "docker-compose"
     directories:
       - "/common_files/komodo-periphery"
