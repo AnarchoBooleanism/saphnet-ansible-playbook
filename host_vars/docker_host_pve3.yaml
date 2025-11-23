@@ -55,4 +55,4 @@ disks:
 
 # System-specific
 nixos_anywhere_build_remotely: true # Building remotely to avoid breaking PVE node with deluge of IO
-nixos_config_name: "docker-host-pve3" # Make sure group_vars/nixos-vms.yaml is imported first
+nixos_config_name: "docker-host-pve3" # Make sure group_vars/nixos_vms.yaml is imported first

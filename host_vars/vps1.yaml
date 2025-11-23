@@ -1,0 +1,14 @@
+---
+# Public-facing VPS to serve as public reverse proxy
+# Config-specific
+secrets_files:
+  - vps1
+
+vps_address: vps1.saphnet.xyz
+allowed_ports: # SSH is dealt with in the playbook
+  - port: '80' # HTTP
+    proto: tcp
+  - port: '443' # HTTPS
+    proto: tcp
+  - port: '25565' # Minecraft
+    proto: tcp

@@ -1,0 +1,267 @@
+---
+# Load variables, establish facts
+- name: Load VPS group defaults configuration file
+  ansible.builtin.include_vars:
+    file: "../../group_vars/vps_main.yaml"
+- name: Load VPS-specific configuration file
+  ansible.builtin.include_vars:
+    file: "../../host_vars/{{ vps_file }}.yaml"
+- name: Load config-specific secrets
+  ansible.builtin.include_vars:
+    file: "../../secrets/{{ current_file }}.yaml"
+  loop: "{{ secrets_files }}"
+  loop_control:
+    loop_var: current_file
+  when: (secrets_files is defined) and (secrets_files | length > 0)
+
+# Create SSH keys
+- name: Create temporary directory for the SSH key from the vault
+  ansible.builtin.tempfile:
+    state: directory
+    prefix: ansible-vps-root_ssh-
+  register: vps_root_ssh_key_directory # To refer to this, use "vps_root_ssh_key_directory.path"
+- name: Write temporary file for the SSH public key from the vault
+  ansible.builtin.copy: # NOTE: These steps assume ed25519 as the algorithm
+    content: "{{ vault_vps_root_ssh_key_public }}"
+    dest: "{{ vps_root_ssh_key_directory.path }}/id_ed25519.pub"
+    mode: "0600"
+  register: vps_root_ssh_key_public # To refer to this, use "vps_root_ssh_key_public.dest"
+- name: Write temporary file for the SSH private key from the vault
+  ansible.builtin.copy:
+    content: "{{ vault_vps_root_ssh_key_private }}"
+    dest: "{{ vps_root_ssh_key_directory.path }}/id_ed25519"
+    mode: "0600"
+  register: vps_root_ssh_key_private # To refer to this, use "vps_root_ssh_key_private.dest"
+
+# Main logic
+- name: Set facts for delegate connection # We need to do this so that we can use hostvars with this, for the SSH tasks to actually work...
+  ansible.builtin.set_fact:
+    delegate_ssh_key_file: "{{ vps_root_ssh_key_private.dest }}"
+- name: Perform provision on VPS itself
+  vars:
+    ansible_user: root
+    ansible_connection: ssh
+    ansible_ssh_private_key_file: "{{ hostvars[inventory_hostname]['delegate_ssh_key_file'] }}"
+    ansible_become_pass: "{{ vault_root_password }}"
+  delegate_facts: true
+  delegate_to: "{{ vps_address }}"
+  block:
+    # Add apt repositories, update, and install packages
+    - name: Ensure /etc/apt/keyrings directory exists
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+    - name: Download Docker GPG key
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/debian/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: '0644'
+    - name: Download Netdata GPG key
+      ansible.builtin.get_url:
+        url: https://repository.netdata.cloud/netdatabot.gpg.key
+        dest: /usr/share/keyrings/netdata-archive-keyring.gpg
+        mode: '0644'
+    - name: Download Tailscale GPG key
+      ansible.builtin.get_url:
+        url: https://pkgs.tailscale.com/stable/debian/{{ debian_version_codename }}.noarmor.gpg
+        dest: /usr/share/keyrings/tailscale-archive-keyring.gpg
+        mode: '0644'
+    - name: Add Docker APT repository
+      ansible.builtin.copy:
+        dest: /etc/apt/sources.list.d/docker.sources
+        mode: '0644'
+        content: |
+          Types: deb
+          URIs: https://download.docker.com/linux/debian
+          Suites: {{ debian_version_codename }}
+          Components: stable
+          Signed-By: /etc/apt/keyrings/docker.asc
+    - name: Add Netdata APT repository
+      ansible.builtin.copy:
+        dest: /etc/apt/sources.list.d/netdata.sources
+        mode: '0644'
+        content: |
+          X-Repolib-Name: Netdata stable repository
+          Types: deb
+          URIs: http://repository.netdata.cloud/repos/stable/debian/
+          Suites: {{ debian_version_codename }}/
+          Signed-By: /usr/share/keyrings/netdata-archive-keyring.gpg
+          By-Hash: Yes
+          Enabled: Yes
+
+          X-Repolib-Name: Netdata repository configuration repository
+          Types: deb
+          URIs: http://repository.netdata.cloud/repos/repoconfig/debian/
+          Suites: {{ debian_version_codename }}/
+          Signed-By: /usr/share/keyrings/netdata-archive-keyring.gpg
+          By-Hash: Yes
+          Enabled: Yes
+    - name: Add Tailscale APT repository
+      ansible.builtin.get_url:
+        url: https://pkgs.tailscale.com/stable/debian/{{ debian_version_codename }}.tailscale-keyring.list
+        dest: /etc/apt/sources.list.d/tailscale.list
+        mode: '0644'
+    - name: Update and upgrade apt packages
+      ansible.builtin.apt:
+        upgrade: yes
+        update_cache: yes
+        cache_valid_time: 86400
+    - name: Install various packages
+      ansible.builtin.apt:
+        pkg:
+          # Server essentials
+          - sudo
+          - tmux
+          - htop
+          - tree
+          - ncdu
+          - git
+          - rsync
+          - rclone
+          - ufw
+          - fail2ban
+          # Tailscale
+          - tailscale
+          # Netdata
+          - netdata
+          # Docker
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+
+    # Set instance-specific details, including users, and set up SSH keys
+    - name: Set timezone
+      community.general.timezone:
+        name: "{{ timezone }}"
+    - name: Add a user, with the right shell and groups
+      ansible.builtin.user:
+        name: "{{ main_username }}"
+        password: "{{ vault_main_password_hash }}"
+        shell: /bin/bash
+        groups: sudo,docker
+        append: yes
+    - name: Set authorized key taken from file
+      ansible.posix.authorized_key:
+        user: "{{ main_username }}"
+        state: present
+        key: "{{ authorized_key }}"
+      loop: "{{ authorized_keys }}"
+      loop_control:
+        loop_var: authorized_key
+    - name: Disallow SSH password authentication
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "^PasswordAuthentication"
+        line: "PasswordAuthentication no"
+        validate: "sshd -t -f %s"
+        state: present
+    - name: Restart ssh service
+      ansible.builtin.systemd_service:
+        name: ssh
+        state: restarted
+
+    # Harden security with firewalls
+    - name: Allow port connections
+      community.general.ufw:
+        rule: allow
+        name: OpenSSH
+    - name: Allow access to selected ports
+      community.general.ufw:
+        rule: allow
+        port: "{{ allowed_port.port }}"
+        proto: "{{ allowed_port.proto }}"
+      loop: "{{ allowed_ports | default([]) }}"
+      loop_control:
+        loop_var: allowed_port
+    - name: Allow all outgoing traffic by default
+      community.general.ufw:
+        default: allow
+        direction: outgoing
+    - name: Deny all incoming traffic by default
+      community.general.ufw:
+        default: deny
+        direction: incoming
+    - name: Enable UFW
+      community.general.ufw:
+        state: enabled
+    - name: Enable the fail2ban service
+      ansible.builtin.systemd_service:
+        name: fail2ban
+        state: started
+        enabled: true
+
+    # Set up Tailscale
+    - name: Write IP forwarding rules for Tailscale
+      ansible.builtin.blockinfile:
+        path: "/etc/sysctl.d/99-tailscale.conf"
+        create: true
+        content: |
+          net.ipv4.ip_forward = 1
+          net.ipv6.conf.all.forwarding = 1
+    - name: Immediately activate IP forwarding rules for Tailscale
+      ansible.builtin.command: |
+        sysctl -p /etc/sysctl.d/99-tailscale.conf
+    - name: Enable the tailscaled service
+      ansible.builtin.systemd_service:
+        name: tailscaled
+        state: started
+        enabled: true
+    - name: Log into Tailscale with auth key
+      ansible.builtin.command: |
+        tailscale up --advertise-exit-node --auth-key={{ vault_tailscale_auth_key }}
+
+    # Set up Netdata, Glances
+    - name: Copy stream.conf file for Netdata
+      ansible.builtin.template:
+        src: ../../common_files/netdata/stream-child.conf.j2
+        dest: /etc/netdata/stream.conf
+    - name: Enable the netdata service
+      ansible.builtin.systemd_service:
+        name: netdata
+        state: started
+        enabled: true
+    - name: Create directory for Glances
+      ansible.builtin.file:
+        path: /var/lib/glances
+        state: directory
+    - name: Copy Docker Compose file for Glances
+      ansible.builtin.copy:
+        src: ../../common_files/glances/compose.yaml
+        dest: /var/lib/glances/compose.yaml
+    - name: Start Glances service
+      community.docker.docker_compose_v2:
+        project_name: glances
+        project_src: /var/lib/glances
+        state: present
+
+    # Set up Komodo Periphery
+    - name: Create directory for Komodo Periphery
+      ansible.builtin.file:
+        path: /var/lib/komodo-periphery
+        state: directory
+    - name: Copy Docker Compose file for Komodo Periphery
+      ansible.builtin.copy:
+        src: ../../common_files/komodo-periphery/periphery.compose.yaml
+        dest: /var/lib/komodo-periphery/periphery.compose.yaml
+    - name: Copy environment variables file for Komodo Periphery
+      ansible.builtin.template:
+        src: ../../common_files/komodo-periphery/.env.j2
+        dest: /var/lib/komodo-periphery/.env
+    - name: Start Komodo Periphery service
+      community.docker.docker_compose_v2:
+        project_name: komodo-periphery
+        project_src: /var/lib/komodo-periphery
+        files:
+          - periphery.compose.yaml
+        env_files:
+          - /var/lib/komodo-periphery/.env
+        state: present
+
+# Delete SSH keys
+- name: Delete temporary directory for VPS SSH keys
+  ansible.builtin.file:
+    state: absent
+    path: "{{ vps_root_ssh_key_directory.path }}"

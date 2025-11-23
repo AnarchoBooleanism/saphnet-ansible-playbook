@@ -2,7 +2,7 @@
 # Load variables, establish facts
 - name: Load default VM configuration file
   ansible.builtin.include_vars:
-    file: "../../group_vars/proxmox-vms.yaml"
+    file: "../../group_vars/proxmox_vms.yaml"
 - name: Load VM-specific configuration file
   ansible.builtin.include_vars:
     file: "../../host_vars/{{ vm_file }}.yaml"

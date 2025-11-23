@@ -22,7 +22,7 @@
           }}
     - name: Load NixOS-specific configuration file
       ansible.builtin.include_vars:
-        file: "../../group_vars/nixos-vms.yaml"
+        file: "../../group_vars/nixos_vms.yaml"
     - name: Create temporary directory for the SSH key for Proxmox from the vault
       ansible.builtin.tempfile:
         state: directory

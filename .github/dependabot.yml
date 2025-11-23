@@ -17,3 +17,9 @@ updates:
     directory: "/prod-shell/"
     schedule:
       interval: "weekly"
+  - package-ecosystem: "docker-compose"
+    directories:
+      - "/common_files/komodo-periphery"
+      - "/common_files/glances"
+    schedule:
+      interval: "weekly"

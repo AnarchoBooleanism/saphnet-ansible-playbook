@@ -45,4 +45,4 @@ disks:
     mbps_wr: 375
 
 # System-specific
-nixos_config_name: "control-server" # Make sure group_vars/nixos-vms.yaml is imported first
+nixos_config_name: "control-server" # Make sure group_vars/nixos_vms.yaml is imported first

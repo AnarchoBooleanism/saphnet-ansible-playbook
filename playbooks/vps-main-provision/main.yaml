@@ -1,0 +1,22 @@
+---
+- name: Provision main (Debian-based) VPS servers
+  hosts: localhost
+  connection: local
+  vars:
+    vps_list:
+      - vps1
+  tasks:
+    - name: Set final list of VPSes to process
+      ansible.builtin.set_fact:
+        final_vps_list: >-
+          {{
+            [target_vps_name]
+            if target_vps_name is defined
+            else vps_list
+          }}
+    # NOTE: Before running this script for your VPS, make sure it has the right SSH key and password set for root!
+    - name: Dynamically create/update each VPS # This is the main guts of our logic here
+      include_tasks: internal-loop.yaml
+      loop: "{{ final_vps_list }}"
+      loop_control:
+        loop_var: vps_file
