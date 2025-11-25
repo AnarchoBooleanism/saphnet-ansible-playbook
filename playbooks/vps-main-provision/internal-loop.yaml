@@ -225,6 +225,17 @@
         enabled: true
 
     # Set up Komodo Periphery
+    - name: Run shell command to get Tailscale IP address, for specifying what IP address to bind to
+      ansible.builtin.shell: |
+        ip -f inet addr show tailscale0 2>/dev/null \
+        | sed -En -e 's/.*inet ([0-9.]+).*/\1/p' \
+        | tr -d '\n'
+      args:
+        executable: /bin/bash
+      register: tailscale_ip_command_output
+    - name: Set fact for Tailscale IP address
+      ansible.builtin.set_fact:
+        tailscale_ip: "{{ tailscale_ip_command_output.stdout }}"
     - name: Create directory for Komodo Periphery
       ansible.builtin.file:
         path: /var/lib/komodo-periphery
