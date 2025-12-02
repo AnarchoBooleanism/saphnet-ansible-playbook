@@ -211,7 +211,7 @@
         enabled: true
     - name: Log into Tailscale with auth key
       ansible.builtin.command: |
-        tailscale up --advertise-exit-node --auth-key={{ vault_tailscale_auth_key }}
+        tailscale up --advertise-exit-node --auth-key={{ vault_tailscale_auth_key }} --accept-routes
 
     # Set up Netdata
     - name: Copy stream.conf file for Netdata
