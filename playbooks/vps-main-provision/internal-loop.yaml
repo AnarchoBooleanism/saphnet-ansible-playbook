@@ -116,6 +116,7 @@
           - htop
           - tree
           - ncdu
+          - vnstat
           - git
           - rsync
           - rclone
