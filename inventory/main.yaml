@@ -34,16 +34,16 @@ vps_hosts:
 
 int_nginx_server: # Should be singleton
   hosts:
-    nginx:
+    docker_host_nginx:
       ansible_host: nginx.pve1.int-net.saphnet.xyz
 
 docker_generic_vms:
   hosts:
-    docker_main_pve1:
+    docker_host_pve1:
       ansible_host: docker-host-pve1.int-net.saphnet.xyz
-    docker_main_pve3:
+    docker_host_pve3:
       ansible_host: docker-host-pve3.int-net.saphnet.xyz
-    docker_main_pve4:
+    docker_host_pve4:
       ansible_host: docker-host-pve4.int-net.saphnet.xyz
 
 docker_vms:

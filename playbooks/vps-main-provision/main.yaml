@@ -2,10 +2,10 @@
 - name: Provision main (Debian-based) VPS servers
   hosts: localhost
   connection: local
-  vars:
-    vps_list:
-      - vps1
   tasks:
+    - name: Set initial list of VPSes to process
+      ansible.builtin.set_fact:
+        vm_list: "{{ groups['vps_main'] }}"
     - name: Set final list of VPSes to process
       ansible.builtin.set_fact:
         final_vps_list: >-

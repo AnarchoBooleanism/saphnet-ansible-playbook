@@ -17,3 +17,7 @@ uses_sopsnix: false
 # The Git repository to refer to for NixOS flakes
 nixos_flake_repo: github:anarchobooleanism/saphnet-nixos-configs
 nixos_flake_repo_url: https://github.com/AnarchoBooleanism/saphnet-nixos-configs.git
+nixos_flake_repo_branch: main
+
+# Important info for logging in
+nixos_username: saphnet-user # Default NixOS username here

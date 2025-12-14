@@ -2,16 +2,12 @@
 - name: Create Proxmox VMs with dynamic hardware configurations
   hosts: localhost
   connection: local
-  vars:
-    vm_list:
-      - control_server_main
-      - docker_host_nginx
-      - docker_host_pve1
-      - docker_host_pve3
-      - docker_host_pve4
   vars_files:
     - ../../secrets/proxmox.yaml
   tasks:
+    - name: Set initial list of VMs to process
+      ansible.builtin.set_fact:
+        vm_list: "{{ groups['nixos_hosts'] }}"
     - name: Set final list of VMs to process
       ansible.builtin.set_fact:
         final_vm_list: >-
@@ -52,6 +48,7 @@
     - name: Clone Git repo for NixOS flake configurations
       ansible.builtin.git:
         repo: "{{ nixos_flake_repo_url }}"
+        version: "{{ nixos_flake_repo_branch }}"
         dest: "{{ nixos_configs_directory.path }}"
         force: true # Be sure to check for any changed hardware-configuation.nix files beforehand...
     - name: Dynamically create/update each VM # This is the main guts of our logic here
