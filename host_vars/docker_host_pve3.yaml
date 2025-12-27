@@ -13,7 +13,7 @@ vm_name: docker-host-pve3
 vm_description: Docker host on node pve3
 mac_addr: BC:24:11:A6:A7:1D
 ip_addr: 192.168.8.232
-ip_addr_range: 24
+ip_addr_range: 23
 ip_gateway: 192.168.8.1
 ssh_port: 22
 cpu_limit: 1 # For some reason, cpulimit is an integer?

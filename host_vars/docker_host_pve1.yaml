@@ -13,7 +13,7 @@ vm_name: docker-host-pve1
 vm_description: Docker host on node pve1
 mac_addr: BC:24:11:C9:C7:05
 ip_addr: 192.168.8.116
-ip_addr_range: 24
+ip_addr_range: 23
 ip_gateway: 192.168.8.1
 ssh_port: 22
 cpu_cores: 4

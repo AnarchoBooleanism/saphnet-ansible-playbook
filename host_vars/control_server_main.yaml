@@ -13,7 +13,7 @@ vm_name: control-server
 vm_description: NixOS VM serving as a Komodo and Semaphore (Ansible) control server
 mac_addr: BC:24:11:EA:FE:1A
 ip_addr: 192.168.8.211
-ip_addr_range: 24
+ip_addr_range: 23
 ip_gateway: 192.168.8.1
 ssh_port: 22
 cpu_cores: 1

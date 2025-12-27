@@ -13,7 +13,7 @@ vm_name: docker-host-nginx
 vm_description: Docker host for reverse proxy and various web services
 mac_addr: BC:24:11:50:F4:DE
 ip_addr: 192.168.8.202
-ip_addr_range: 24
+ip_addr_range: 23
 ip_gateway: 192.168.8.1
 ssh_port: 22
 cpu_cores: 4
