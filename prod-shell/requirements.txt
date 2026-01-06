@@ -1,6 +1,6 @@
 ansible==13.1.0
 ansible-core==2.20.1
-certifi==2025.11.12
+certifi==2026.1.4
 cffi==2.0.0
 charset-normalizer==3.4.4
 cryptography==46.0.3
