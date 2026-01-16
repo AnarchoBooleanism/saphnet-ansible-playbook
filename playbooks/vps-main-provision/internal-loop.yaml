@@ -177,6 +177,10 @@
       loop: "{{ allowed_ports | default([]) }}"
       loop_control:
         loop_var: allowed_port
+    - name: Allow access from Tailscale
+      community.general.ufw:
+        rule: allow
+        interface: tailscale0
     - name: Allow all outgoing traffic by default
       community.general.ufw:
         default: allow
@@ -211,8 +215,9 @@
         state: started
         enabled: true
     - name: Log into Tailscale with auth key
+      # Note: Stateful filtering is false for things to work with Docker containers
       ansible.builtin.command: |
-        tailscale up --advertise-exit-node --auth-key={{ vault_tailscale_auth_key }} --accept-routes
+        tailscale up --stateful-filtering=false --advertise-exit-node --auth-key={{ vault_tailscale_auth_key }} --accept-routes
 
     # Set up Netdata
     - name: Copy stream.conf file for Netdata
