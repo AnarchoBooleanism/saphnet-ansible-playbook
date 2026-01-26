@@ -7,7 +7,7 @@ cryptography==46.0.3
 idna==3.11
 Jinja2==3.1.6
 MarkupSafe==3.0.3
-packaging==25.0
+packaging==26.0
 proxmoxer==2.2.0
 pycparser==2.23
 PyYAML==6.0.3
