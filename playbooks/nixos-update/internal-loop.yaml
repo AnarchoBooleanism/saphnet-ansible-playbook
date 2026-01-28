@@ -6,6 +6,13 @@
 - name: Load system-specific configuration file
   ansible.builtin.include_vars:
     file: "../../host_vars/{{ vm_file }}.yaml"
+- name: Load config-specific secrets
+  ansible.builtin.include_vars:
+    file: "../../secrets/{{ current_file }}.yaml"
+  loop: "{{ secrets_files }}"
+  loop_control:
+    loop_var: current_file
+  when: (secrets_files is defined) and (secrets_files | length > 0)
 
 # Update remote NixOS VM
 - name: Set facts for delegate connection # We need to do this so that we can use hostvars with this, for the SSH tasks to actually work...
@@ -13,10 +20,12 @@
     delegate_ssh_key_file: "{{ ssh_key_private.dest }}"
 - name: Run nixos-rebuild
   vars:
-    ansible_user: "{{ nixos_username }}"
+    ansible_user: "{{ hostvars['localhost']['nixos_username'] }}"
     ansible_connection: ssh # Make sure that your ansible-playbook command has --ask-become-pass
     ansible_ssh_private_key_file: "{{ hostvars[inventory_hostname]['delegate_ssh_key_file'] }}"
+    ansible_become_password: "{{ hostvars['localhost']['vault_nixos_password'] }}"
   delegate_facts: true
   delegate_to: "{{ ip_addr }}"
+  become: yes
   ansible.builtin.command: |
     nixos-rebuild switch --flake {{ nixos_flake_repo }}?ref={{ nixos_flake_repo_branch }}#{{ nixos_config_name }}
