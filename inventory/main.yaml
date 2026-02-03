@@ -32,15 +32,12 @@ vps_hosts:
   children:
     vps_main:
 
-int_nginx_server: # Should be singleton
-  hosts:
-    docker_host_nginx:
-      ansible_host: nginx.pve1.int-net.saphnet.xyz
-
 docker_generic_vms:
   hosts:
-    docker_host_pve1:
-      ansible_host: docker-host-pve1.int-net.saphnet.xyz
+    docker_host_core:
+      ansible_host: docker-host-core.int-net.saphnet.xyz
+    # docker_host_pve1:
+    #   ansible_host: docker-host-pve1.int-net.saphnet.xyz
     docker_host_pve3:
       ansible_host: docker-host-pve3.int-net.saphnet.xyz
     docker_host_pve4:
@@ -49,7 +46,6 @@ docker_generic_vms:
 docker_vms:
   children:
     vps_main:
-    int_nginx_server:
     docker_generic_vm:
 
 dev_servers:
@@ -66,5 +62,4 @@ nixos_hosts:
   children:
     docker_generic_vms:
     control_server:
-    int_nginx_server:
     # vpn_servers: # TODO: Work on these after generic VMs

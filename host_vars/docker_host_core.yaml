@@ -2,14 +2,14 @@
 # Docker host for reverse proxy and various web services
 # Config-specific
 secrets_files:
-  - docker-host-nginx
+  - docker-host-core
 
 # Hypervisor-specific
 proxmox_host: pve1.int-net.saphnet.xyz
 proxmox_host_port: 8006
 proxmox_node: pve1
 vm_id: 105
-vm_name: docker-host-nginx
+vm_name: docker-host-core
 vm_description: Docker host for reverse proxy and various web services
 mac_addr: BC:24:11:50:F4:DE
 ip_addr: 192.168.8.202
@@ -42,4 +42,4 @@ disks:
     mbps_wr: 375
 
 # System-specific
-nixos_config_name: "docker-host-nginx" # Make sure group_vars/nixos_vms.yaml is imported first
+nixos_config_name: "docker-host-core" # Make sure group_vars/nixos_vms.yaml is imported first
