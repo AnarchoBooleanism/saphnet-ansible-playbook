@@ -36,8 +36,6 @@ docker_generic_vms:
   hosts:
     docker_host_core:
       ansible_host: docker-host-core.int-net.saphnet.xyz
-    # docker_host_pve1:
-    #   ansible_host: docker-host-pve1.int-net.saphnet.xyz
     docker_host_pve3:
       ansible_host: docker-host-pve3.int-net.saphnet.xyz
     docker_host_pve4:
