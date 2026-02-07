@@ -19,7 +19,7 @@ ssh_port: 22
 cpu_limit: 1 # For some reason, cpulimit is an integer?
 # cpu_limit: 0.9 # We use all the cores, trying to let other processes be able to run if maxing out
 cpu_cores: 8
-ram_total: 16384 # Is in MiB
+ram_total: 24576 # Is in MiB
 disk_size: 128 # Is in GiB
 vm_storage: local-zfs
 iso_storage: local
