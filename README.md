@@ -1,6 +1,8 @@
 # saphnet-ansible-playbook
 The Ansible playbook for the Saphnet Homelab/Home Server
 
+For the Nix instance with which you will run NixOS-based playbooks, make sure `flakes`, `nix-commands`, and `pipe-operators` are enabled in `experimental-features`! They are included by default in ansible-shell.
+
 Useful commands:
 - `./ansible-shell.sh [any command]`
 - `ansible-playbook --ask-vault-pass playbooks/nixos-proxmox-vm-deploy/main.yaml -vvvv -e "target_vm_name=control_server_main"`
