@@ -18,7 +18,7 @@ ip_gateway: 192.168.8.1
 ssh_port: 22
 cpu_cores: 1
 ram_total: 1024 # Is in MiB
-disk_size: 64 # Is in GiB
+disk_size: 48 # Is in GiB
 vm_storage: local-zfs
 iso_storage: sdcard
 iso_directory: /mnt/sdcard/template/iso # Matches "sdcard"
