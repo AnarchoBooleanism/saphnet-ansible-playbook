@@ -1,5 +1,5 @@
 # Container for running the Ansible playbooks in, with all necessary packages included
-FROM alpine:3.23.2
+FROM alpine:3.23.3
 ENV NIXPKGS_VERSION=25.11
 
 # Install necessary Alpine packages
