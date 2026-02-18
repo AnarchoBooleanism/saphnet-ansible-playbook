@@ -1,11 +1,11 @@
 ---
 # Information about version of nixos-cloud-init-installer, to manually update
-nixos_cloudinit_iso_version: v1.0.2
+nixos_cloudinit_iso_version: v1.0.4
 nixos_cloudinit_iso_name: "nixos-cloud-init-installer-{{ nixos_cloudinit_iso_version }}-x86_64.iso"
 nixos_cloudinit_iso_url: "https://github.com/AnarchoBooleanism/nixos-cloud-init-installer/releases/download/\
   {{ nixos_cloudinit_iso_version }}/{{ nixos_cloudinit_iso_name }}"
 nixos_cloudinit_iso_checksum_algorithm: sha256
-nixos_cloudinit_iso_checksum: 61f2c6f6b865e131c36f7f344bd2c2768e1fb7d927011dc9c74d62516008de71
+nixos_cloudinit_iso_checksum: baa4c831da94521528dd82aa094c31554d1ff72ae68fca097285ede3d387da6f
 nixos_cloudinit_user: root
 
 # Important details for deploying with nixos-anywhere and updating flakes
