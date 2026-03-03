@@ -181,6 +181,7 @@
       community.general.ufw:
         rule: allow
         interface: tailscale0
+        direction: in # Very important if stating "interface"
     - name: Allow access from Docker networks
       community.general.ufw:
         rule: allow
@@ -246,6 +247,8 @@
     - name: Set fact for Tailscale IP address
       ansible.builtin.set_fact:
         tailscale_ip: "{{ tailscale_ip_command_output.stdout }}"
+      delegate_to: "{{ inventory_hostname }}"
+      delegate_facts: true
     - name: Create a network
       community.docker.docker_network:
         name: web_bridge # What Docker containers will use to communicate with each other and the reverse proxy
