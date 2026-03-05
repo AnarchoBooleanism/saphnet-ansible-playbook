@@ -182,6 +182,11 @@
         rule: allow
         interface: tailscale0
         direction: in # Very important if stating "interface"
+    - name: Allow access to Tailscale
+      community.general.ufw:
+        rule: allow
+        interface: tailscale0
+        direction: out # Very important if stating "interface"
     - name: Allow access from Docker networks
       community.general.ufw:
         rule: allow
