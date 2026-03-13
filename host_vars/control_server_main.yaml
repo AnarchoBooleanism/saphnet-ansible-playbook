@@ -16,7 +16,7 @@ ip_addr: 192.168.8.211
 ip_addr_range: 23
 ip_gateway: 192.168.8.1
 ssh_port: 22
-cpu_cores: 1
+cpu_cores: 2
 ram_total: 1024 # Is in MiB
 disk_size: 48 # Is in GiB
 vm_storage: local-zfs
