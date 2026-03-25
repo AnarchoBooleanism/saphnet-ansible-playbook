@@ -5,5 +5,6 @@ timezone: America/Los_Angeles
 authorized_keys: # Remember to rotate these often...
   - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICIRcmiTqvW38xqBGPO0gVFeRy0Hym04HDv51vXlzo4v hihacks@valk-pc
   - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIfzr/4/ipnDOo9cNZBoaW5jJoW0irFgFqPi6iqHl18c hihacks@crummytop
+komodo_public_key: MCowBQYDK2VuAyEA0Eln2iV4qEGKReCXLsA68JOD/2ogITYJgzZXOjhD9EI=
 netdata_parent_url: proxmox-server:19999
 debian_version_codename: trixie
