@@ -16,8 +16,6 @@ services:
       - "${TAILSCALE_IP:-0.0.0.0}:8120:8120"
     environment:
       PERIPHERY_ROOT_DIRECTORY: "${PERIPHERY_ROOT_DIRECTORY:-/etc/komodo}"
-      ## Pass the same passkey as used by the Komodo Core connecting to this Periphery agent.
-      # PERIPHERY_PASSKEYS: "${PERIPHERY_PASSKEYS}"
       ## The public key of the Komodo Core connecting to this Periphery agent.
       PERIPHERY_CORE_PUBLIC_KEYS: "${KOMODO_PUBLIC_KEY}"
       ## Make server run over https
