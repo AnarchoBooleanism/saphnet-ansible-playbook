@@ -271,6 +271,11 @@
       ansible.builtin.template:
         src: ../../common_files/komodo-periphery/.env.j2
         dest: /var/lib/komodo-periphery/.env
+    - name: Copy SOPS key file for Komodo Periphery
+      ansible.builtin.copy:
+        content: "{{ vault_komodo_sops_key }}"
+        mode: '0600' # Making sure invaders have reduced chance of reading key...
+        dest: /var/lib/komodo-periphery/keys.txt
     - name: Start Komodo Periphery service
       community.docker.docker_compose_v2:
         project_name: komodo-periphery

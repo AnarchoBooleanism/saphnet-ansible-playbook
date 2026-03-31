@@ -8,6 +8,7 @@ Useful commands:
 - `ansible-playbook --ask-vault-pass playbooks/nixos-proxmox-vm-deploy/main.yaml -vvvv -e "target_vm_name=control_server_main"`
 - `ansible-playbook --vault-id control-server@prompt --vault-id proxmox@prompt playbooks/nixos-proxmox-vm-deploy/main.yaml -vv`
   - Feel free to use `-vvvv` for extra verbosity
+- `ansible-playbook --vault-id ansible@prompt --vault-id control-server@prompt --vault-id docker-host-core@prompt --vault-id docker-host-pve3@prompt --vault-id docker-host-pve4@prompt playbooks/nixos-update/main.yaml -vv`
 - `ansible-vault encrypt --vault-id control-server@prompt secrets/control-server.yaml`
 - `EDITOR=nano ansible-vault edit --vault-id control-server@prompt secrets/control-server.yaml`
 

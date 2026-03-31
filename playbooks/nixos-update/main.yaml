@@ -36,7 +36,7 @@
     - name: Load NixOS-specific configuration file
       ansible.builtin.include_vars:
         file: "../../group_vars/nixos_vms.yaml"
-    - name: Update each VPS # This is the main guts of our logic here
+    - name: Update each VM # This is the main guts of our logic here
       include_tasks: internal-loop.yaml
       loop: "{{ final_vm_list }}"
       loop_control:
