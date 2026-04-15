@@ -21,7 +21,7 @@ pve_hosts:
 control_server: # Should be singleton
   hosts:
     control_server_main:
-      ansible_host: control_server.int-net.saphnet.xyz
+      ansible_host: control-server.int-net.saphnet.xyz
 
 vps_main: # Should be singleton
   hosts:
@@ -46,10 +46,10 @@ docker_vms:
     vps_main:
     docker_generic_vm:
 
-dev_servers:
+dev_server:
   hosts:
-    dev_server:
-      ansible_host: dev.pve4.int-net.saphnet.xyz
+    dev_server_main:
+      ansible_host: dev-server.int-net.saphnet.xyz
 
 vpn_servers:
   hosts:
@@ -59,5 +59,6 @@ vpn_servers:
 nixos_hosts:
   children:
     docker_generic_vms:
+    dev_server:
     control_server:
     # vpn_servers: # TODO: Work on these after generic VMs
