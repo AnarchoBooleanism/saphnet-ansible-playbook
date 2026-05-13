@@ -11,6 +11,6 @@ packaging==26.2
 proxmoxer==2.3.0
 pycparser==3.0
 PyYAML==6.0.3
-requests==2.33.1
+requests==2.34.0
 resolvelib==1.2.1
 urllib3==2.6.3
