@@ -3,7 +3,7 @@
   "extends": [
     "config:recommended",
   ],
-  "enabledManagers": ["regex"],
+  "enabledManagers": ["custom.regex"],
   "customManagers": [
     {
       "customType": "regex",
