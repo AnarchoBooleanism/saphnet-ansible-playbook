@@ -35,7 +35,7 @@ As well, these playbooks can use files from the `common_files` directory; these 
 ### Example commands
 - For running `nixos-proxmox-vm-deploy` for just the `control_server_main` host, at level 2 for verbosity: `ansible-playbook --vault-id control-server@prompt --vault-id proxmox@prompt -vv playbooks/nixos-proxmox-vm-deploy/main.yaml -e "target_vm_name=control_server_main"`
 - For running `nixos-update` for all hosts, at level 2 for verbosity (assuming the exhaustive list of VMs are `control_server`, `docker_host_core`, `docker_host_pve3`, and `docker-host-pve4`): `ansible-playbook --vault-id ansible@prompt --vault-id control-server@prompt --vault-id docker-host-core@prompt --vault-id docker-host-pve3@prompt --vault-id docker-host-pve4@prompt playbooks/nixos-update/main.yaml -vv`
-- For running `vps-main-provision` for just the `vps1` host, at level 2 for verbosity: `ansible-playbook --vault-id vps1@prompt --vault-id control-server@prompt -vv playbooks/vps-main-provision/main.yaml -e "target_vm_name=control_server_main"`
+- For running `vps-main-provision` for just the `vps1` host, at level 2 for verbosity: `ansible-playbook --vault-id vps1@prompt -vv playbooks/vps-main-provision/main.yaml -e "target_vm_name=control_server_main"`
 
 ## Note on using Ansible (+ Nix)
 To run the Ansible playbooks in this repository, you will need to have Ansible installed on your system's environment, whether through your system's package manager or through Python (via `pip`). Alongside Ansible, you will also need to have the `community.general` collection installed, to access functionality for Proxmox and more; the `community.general` collection is generally included with complete Ansible installations, but it, itself, is not part of `ansible-core`.
