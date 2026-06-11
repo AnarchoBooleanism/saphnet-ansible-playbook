@@ -176,7 +176,7 @@
 - ansible.builtin.debug:
     msg: |
       nixos-anywhere may take a while to run, and you won't see any output here in the meanwhile.
-      To see its output in real-time, check the file {{ nixos_anywhere_log_file.path }}
+      To see its output in real-time, run this command (you may need to use sudo): "tail -f {{ nixos_anywhere_log_file.path }}"
 - name: Run nixos-anywhere, you might not see anything in the output for a while as it runs
   ansible.builtin.shell: "{{ nixos_anywhere_command }}"
 

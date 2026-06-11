@@ -51,6 +51,10 @@
         version: "{{ nixos_flake_repo_branch }}"
         dest: "{{ nixos_configs_directory.path }}"
         force: true # Be sure to check for any changed hardware-configuation.nix files beforehand...
+    - name: Create directory for logs from nixos-anywhere
+      ansible.builtin.file:
+        path: "../../tmp-logs"
+        state: directory
     - name: Dynamically create/update each VM # This is the main guts of our logic here
       include_tasks: internal-loop.yaml
       loop: "{{ final_vm_list }}"
