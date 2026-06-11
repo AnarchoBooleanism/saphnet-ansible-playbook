@@ -62,6 +62,8 @@
   delegate_to: "{{ hostvars[inventory_hostname]['delegate_host'] }}"
 
 # Set up Proxmox VM and start it
+# NOTE: validate_certs, for the Proxmox module, has to be manually set to false (which is done here),
+#       so that self-signed certificates (used by default by PVE nodes) don't break the playbook.
 - name: Create VM "{{ vm_name }}" using proxmox_kvm
   community.proxmox.proxmox_kvm: "{{ merged_vm_config }}"
 - name: Create the disks for VM
@@ -85,6 +87,7 @@
       ide2: '{{ iso_storage }}:iso/{{ nixos_cloudinit_iso_name }},media=cdrom'
     update: true
     update_unsafe: true
+    validate_certs: "{{ proxmox_verify_certs }}"
 - name: Start VM for installation
   community.proxmox.proxmox_kvm:
     api_host: "{{ proxmox_host }}"
@@ -93,6 +96,7 @@
     node: "{{ proxmox_node }}"
     vmid: "{{ vm_id }}"
     state: started
+    validate_certs: "{{ proxmox_verify_certs }}"
 
 # Start nixos-anywhere
 - name: After waiting 30 seconds, check if remote host reachable within 5 minutes
@@ -192,6 +196,7 @@
     node: "{{ proxmox_node }}"
     vmid: "{{ vm_id }}"
     state: stopped
+    validate_certs: "{{ proxmox_verify_certs }}"
 - name: Pause for 60 seconds to allow for natural shutdown
   ansible.builtin.pause:
     seconds: 60
@@ -209,6 +214,7 @@
       ide2: 'none,media=cdrom'
     update: true
     update_unsafe: true
+    validate_certs: "{{ proxmox_verify_certs }}"
 - name: Start VM
   community.proxmox.proxmox_kvm:
     api_host: "{{ proxmox_host }}"
@@ -217,6 +223,7 @@
     node: "{{ proxmox_node }}"
     vmid: "{{ vm_id }}"
     state: started
+    validate_certs: "{{ proxmox_verify_certs }}"
 - name: Delete temporary directory for nixos-anywhere files
   ansible.builtin.file:
     state: absent
