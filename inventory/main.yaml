@@ -53,12 +53,12 @@ dev_server:
 
 vpn_servers:
   hosts:
-    vpn_server:
-      ansible_host: vpn.int-net.saphnet.xyz
+    vpn_server_1:
+      ansible_host: vpn-server-1.int-net.saphnet.xyz
 
 nixos_hosts:
   children:
     docker_generic_vms:
     dev_server:
     control_server:
-    # vpn_servers: # TODO: Work on these after generic VMs
+    vpn_servers:
