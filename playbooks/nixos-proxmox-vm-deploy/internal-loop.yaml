@@ -88,6 +88,18 @@
     update: true
     update_unsafe: true
     validate_certs: "{{ proxmox_verify_certs }}"
+- name: Temporarily increase RAM capacity of VM if not sufficient for deployment
+  community.proxmox.proxmox_kvm:
+    api_host: "{{ proxmox_host }}"
+    api_user: "{{ proxmox_user }}"
+    api_password: "{{ vault_proxmox_pass }}"
+    node: "{{ proxmox_node }}"
+    vmid: "{{ vm_id }}"
+    memory: "{{ nixos_anywhere_target_minimum_memory }}"
+    update: true
+    update_unsafe: true
+    validate_certs: "{{ proxmox_verify_certs }}"
+  when: merged_vm_config.memory < nixos_anywhere_target_minimum_memory
 - name: Start VM for installation
   community.proxmox.proxmox_kvm:
     api_host: "{{ proxmox_host }}"
@@ -181,6 +193,7 @@
     msg: |
       nixos-anywhere may take a while to run, and you won't see any output here in the meanwhile.
       To see its output in real-time, run this command (you may need to use sudo): "tail -f {{ nixos_anywhere_log_file.path }}"
+      (If you are using ansible-shell.sh, note that the path you want to enter may differ to that of in the above command)
 - name: Run nixos-anywhere, you might not see anything in the output for a while as it runs
   ansible.builtin.shell: "{{ nixos_anywhere_command }}"
 
@@ -215,6 +228,18 @@
     update: true
     update_unsafe: true
     validate_certs: "{{ proxmox_verify_certs }}"
+- name: Revert RAM capacity of VM if decreased earlier
+  community.proxmox.proxmox_kvm:
+    api_host: "{{ proxmox_host }}"
+    api_user: "{{ proxmox_user }}"
+    api_password: "{{ vault_proxmox_pass }}"
+    node: "{{ proxmox_node }}"
+    vmid: "{{ vm_id }}"
+    memory: "{{ merged_vm_config.memory }}"
+    update: true
+    update_unsafe: true
+    validate_certs: "{{ proxmox_verify_certs }}"
+  when: merged_vm_config.memory < nixos_anywhere_target_minimum_memory
 - name: Start VM
   community.proxmox.proxmox_kvm:
     api_host: "{{ proxmox_host }}"

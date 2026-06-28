@@ -11,6 +11,7 @@ nixos_cloudinit_user: root
 
 # Important details for deploying with nixos-anywhere and updating flakes
 nixos_anywhere_build_remotely: false # You're free to enable this if the target system is powerful enough, or if building locally causes problems
+nixos_anywhere_target_minimum_memory: 2048 # In MiB, as going under this may lead to freezing
 ssh_port: 22
 uses_impermanence: false
 uses_sopsnix: false
