@@ -8,7 +8,7 @@
     file: "../../host_vars/{{ vm_file }}.yaml"
 - name: Load config-specific secrets
   ansible.builtin.include_vars:
-    file: "../../secrets/{{ current_file }}.yaml"
+    file: "../../secrets/{{ current_file }}.enc.yaml"
   loop: "{{ secrets_files }}"
   loop_control:
     loop_var: current_file

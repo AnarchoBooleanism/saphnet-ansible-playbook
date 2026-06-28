@@ -3,7 +3,7 @@
   hosts: localhost
   connection: local
   vars_files:
-    - ../../secrets/proxmox.yaml
+    - ../../secrets/proxmox.enc.yaml
   tasks:
     - name: Set initial list of VMs to process
       ansible.builtin.set_fact:
