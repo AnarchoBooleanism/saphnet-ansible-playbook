@@ -35,6 +35,7 @@ As well, these playbooks can use files from the `common_files` directory; these 
 ### Example commands
 - For running `nixos-proxmox-vm-deploy` for just the `control_server_main` host, at level 2 for verbosity: `ansible-playbook --vault-id control-server@prompt --vault-id proxmox@prompt -vv playbooks/nixos-proxmox-vm-deploy/main.yaml -e "target_vm_name=control_server_main"`
 - For running `nixos-update` for all hosts, at level 2 for verbosity (assuming the exhaustive list of VMs are `control_server`, `docker_host_core`, `docker_host_pve3`, and `docker-host-pve4`): `ansible-playbook --vault-id ansible@prompt --vault-id control-server@prompt --vault-id docker-host-core@prompt --vault-id docker-host-pve3@prompt --vault-id docker-host-pve4@prompt playbooks/nixos-update/main.yaml -vv`
+- For running `nixos-update` for all hosts, but while building all packages locally, overriding any host-specific preferences (assuming the exhaustive list of VMs are `control_server`, `docker_host_core`, `docker_host_pve3`, and `docker-host-pve4`): `ansible-playbook --vault-id ansible@prompt --vault-id control-server@prompt --vault-id docker-host-core@prompt --vault-id docker-host-pve3@prompt --vault-id docker-host-pve4@prompt playbooks/nixos-update/main.yaml -e "nixos_anywhere_build_remotely_all=false"`
 - For running `vps-main-provision` for just the `vps1` host, at level 2 for verbosity: `ansible-playbook --vault-id vps1@prompt -vv playbooks/vps-main-provision/main.yaml -e "target_vm_name=control_server_main"`
 
 ## Note on using Ansible (+ Nix)
