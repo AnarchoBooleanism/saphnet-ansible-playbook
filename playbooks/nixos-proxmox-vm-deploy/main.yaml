@@ -36,15 +36,11 @@
         dest: "{{ proxmox_ssh_key_directory.path }}/id_ed25519"
         mode: "0600"
       register: proxmox_ssh_key_private # To refer to this, use "proxmox_ssh_key_private.dest"
-    # - name: Create temporary directory for Git repo for NixOS flake configurations
-    #   ansible.builtin.tempfile:
-    #     state: directory
-    #     prefix: nixos-configs-
-    #   register: nixos_configs_directory # To refer to this, use "nixos_configs_directory.path"
-    - name: Establish directory for Git repo for NixOS flakes configurations
-      ansible.builtin.set_fact:
-        nixos_configs_directory:
-          path: "../../saphnet-nixos-configs" # To refer to this, use "nixos_configs_directory.path"
+    - name: Create temporary directory for Git repo for NixOS flakes configurations 
+      ansible.builtin.tempfile:
+        state: directory
+        prefix: nixos-proxmox-vm-deploy-nixos-configs
+      register: nixos_configs_directory # To refer to this, use "nixos_configs_directory.path"
     - name: Clone Git repo for NixOS flake configurations
       ansible.builtin.git:
         repo: "{{ nixos_flake_repo_url }}"
@@ -54,6 +50,10 @@
     - name: Create directory for logs from nixos-anywhere
       ansible.builtin.file:
         path: "../../tmp-logs"
+        state: directory
+    - name: Create directory for nixos-anywhere artifacts
+      ansible.builtin.file:
+        path: "../../tmp-artifacts"
         state: directory
     - name: Dynamically create/update each VM # This is the main guts of our logic here
       include_tasks: internal-loop.yaml

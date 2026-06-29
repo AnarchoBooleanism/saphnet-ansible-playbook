@@ -47,7 +47,8 @@
   when: not build_remotely_here
 - name: Run nixos-rebuild (on system running Ansible)
   ansible.builtin.shell: |
-    NIX_SSHOPTS="-i {{ ssh_key_private.dest }} -o StrictHostKeyChecking=no" nix run nixpkgs#nixos-rebuild -- switch \
+    NIX_SSHOPTS="-i {{ ssh_key_private.dest }} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \
+    nix run nixpkgs#nixos-rebuild -- switch \
     --flake {{ nixos_flake_repo }}?ref={{ nixos_flake_repo_branch }}#{{ nixos_config_name }} \
     --target-host {{ nixos_username }}@{{ ip_addr }} --sudo \
     > {{ nixos_rebuild_log_file.path }} 2>&1 # Because Ansible does not print output in real time
