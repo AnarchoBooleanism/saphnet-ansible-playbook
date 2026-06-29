@@ -143,34 +143,49 @@
           {{ '/persist' if uses_impermanence else '' }}\
           /var/lib/sops-nix/keys.txt"
         mode: "0600"
-    - name: Add ed25519 SSH private key, for nixos-anywhere
-      ansible.builtin.copy:
-        content: "{{ vault_nixos_ssh_ed25519_key_private }}"
-        dest: "{{ nixos_anywhere_extras_directory.path }}\
+    - name: Generate ed25519 SSH private key, for nixos-anywhere
+      community.crypto.openssh_keypair:
+        path: "{{ nixos_anywhere_extras_directory.path }}\
           {{ '/persist' if uses_impermanence else '' }}\
           /etc/ssh/ssh_host_ed25519_key"
-        mode: "0600"
-    - name: Add ed25519 SSH public key, for nixos-anywhere
-      ansible.builtin.copy:
-        content: "{{ vault_nixos_ssh_ed25519_key_public }}"
-        dest: "{{ nixos_anywhere_extras_directory.path }}\
-          {{ '/persist' if uses_impermanence else '' }}\
-          /etc/ssh/ssh_host_ed25519_key.pub"
-        mode: "0600"
-    - name: Add RSA SSH private key, for nixos-anywhere
-      ansible.builtin.copy:
-        content: "{{ vault_nixos_ssh_rsa_key_private }}"
-        dest: "{{ nixos_anywhere_extras_directory.path }}\
+        type: ed25519
+        comment: "root@{{ nixos_config_name }}"
+    - name: Generate RSA SSH private key, for nixos-anywhere
+      community.crypto.openssh_keypair:
+        path: "{{ nixos_anywhere_extras_directory.path }}\
           {{ '/persist' if uses_impermanence else '' }}\
           /etc/ssh/ssh_host_rsa_key"
-        mode: "0600"
-    - name: Add RSA SSH public key, for nixos-anywhere
-      ansible.builtin.copy:
-        content: "{{ vault_nixos_ssh_rsa_key_public }}"
-        dest: "{{ nixos_anywhere_extras_directory.path }}\
-          {{ '/persist' if uses_impermanence else '' }}\
-          /etc/ssh/ssh_host_rsa_key.pub"
-        mode: "0600"
+        type: rsa
+        size: 4096
+        comment: "root@{{ nixos_config_name }}"
+    # - name: Add ed25519 SSH private key, for nixos-anywhere
+    #   ansible.builtin.copy:
+    #     content: "{{ vault_nixos_ssh_ed25519_key_private }}"
+    #     dest: "{{ nixos_anywhere_extras_directory.path }}\
+    #       {{ '/persist' if uses_impermanence else '' }}\
+    #       /etc/ssh/ssh_host_ed25519_key"
+    #     mode: "0600"
+    # - name: Add ed25519 SSH public key, for nixos-anywhere
+    #   ansible.builtin.copy:
+    #     content: "{{ vault_nixos_ssh_ed25519_key_public }}"
+    #     dest: "{{ nixos_anywhere_extras_directory.path }}\
+    #       {{ '/persist' if uses_impermanence else '' }}\
+    #       /etc/ssh/ssh_host_ed25519_key.pub"
+    #     mode: "0600"
+    # - name: Add RSA SSH private key, for nixos-anywhere
+    #   ansible.builtin.copy:
+    #     content: "{{ vault_nixos_ssh_rsa_key_private }}"
+    #     dest: "{{ nixos_anywhere_extras_directory.path }}\
+    #       {{ '/persist' if uses_impermanence else '' }}\
+    #       /etc/ssh/ssh_host_rsa_key"
+    #     mode: "0600"
+    # - name: Add RSA SSH public key, for nixos-anywhere
+    #   ansible.builtin.copy:
+    #     content: "{{ vault_nixos_ssh_rsa_key_public }}"
+    #     dest: "{{ nixos_anywhere_extras_directory.path }}\
+    #       {{ '/persist' if uses_impermanence else '' }}\
+    #       /etc/ssh/ssh_host_rsa_key.pub"
+    #     mode: "0600"
 - name: Create file for log for nixos-anywhere
   ansible.builtin.tempfile:
     path: "../../tmp-logs"
