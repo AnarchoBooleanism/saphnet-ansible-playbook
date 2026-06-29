@@ -36,6 +36,10 @@
     - name: Load NixOS-specific configuration file
       ansible.builtin.include_vars:
         file: "../../group_vars/nixos_vms.yaml"
+    - name: Create directory for logs from nixos-rebuild
+      ansible.builtin.file:
+        path: "../../tmp-logs"
+        state: directory
     - name: Update each VM # This is the main guts of our logic here
       include_tasks: internal-loop.yaml
       loop: "{{ final_vm_list }}"
