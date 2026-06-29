@@ -13,19 +13,42 @@
   loop_control:
     loop_var: current_file
   when: (secrets_files is defined) and (secrets_files | length > 0)
+- name: Determine whether to build remotely or not
+  ansible.builtin.set_fact:
+    build_remotely_here: "{{ nixos_anywhere_build_remotely_all | default(nixos_rebuild_build_remotely) | bool }}"
 
 # Update remote NixOS VM
 - name: Set facts for delegate connection # We need to do this so that we can use hostvars with this, for the SSH tasks to actually work...
   ansible.builtin.set_fact:
     delegate_ssh_key_file: "{{ ssh_key_private.dest }}"
-- name: Run nixos-rebuild
+- name: Run nixos-rebuild (on target)
   vars:
     ansible_user: "{{ hostvars['localhost']['nixos_username'] }}"
     ansible_connection: ssh # Make sure that your ansible-playbook command has --ask-become-pass
     ansible_ssh_private_key_file: "{{ hostvars[inventory_hostname]['delegate_ssh_key_file'] }}"
-    ansible_become_password: "{{ hostvars['localhost']['vault_nixos_password'] }}"
   delegate_facts: true
   delegate_to: "{{ ip_addr }}"
   become: yes
   ansible.builtin.command: |
     nixos-rebuild switch --flake {{ nixos_flake_repo }}?ref={{ nixos_flake_repo_branch }}#{{ nixos_config_name }}
+  when: build_remotely_here
+- name: Create file for log for nixos-rebuild (if not building remotely)
+  ansible.builtin.tempfile:
+    path: "../../tmp-logs"
+    prefix: "nixos-rebuild-log-"
+  register: nixos_rebuild_log_file # To refer to this, use "nixos_rebuild_log_file.path"
+  when: not build_remotely_here
+- name: Give warning about nixos-rebuild taking a while (if not building remotely)
+  ansible.builtin.debug:
+    msg: |
+      nixos-rebuild may take a while to run, and you won't see any output here in the meanwhile.
+      To see its output in real-time, run this command (you may need to use sudo): "tail -f {{ nixos_rebuild_log_file.path }}"
+      (If you are using ansible-shell.sh, note that the path you want to enter may differ to that of in the above command)
+  when: not build_remotely_here
+- name: Run nixos-rebuild (on system running Ansible)
+  ansible.builtin.shell: |
+    NIX_SSHOPTS="-i {{ ssh_key_private.dest }} -o StrictHostKeyChecking=no" nix run nixpkgs#nixos-rebuild -- switch \
+    --flake {{ nixos_flake_repo }}?ref={{ nixos_flake_repo_branch }}#{{ nixos_config_name }} \
+    --target-host {{ nixos_username }}@{{ ip_addr }} --sudo \
+    > {{ nixos_rebuild_log_file.path }} 2>&1 # Because Ansible does not print output in real time
+  when: not build_remotely_here

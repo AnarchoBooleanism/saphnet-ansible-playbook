@@ -5,13 +5,12 @@ nixos_cloudinit_iso_version: v2.2.0
 nixos_cloudinit_iso_name: "nixos-cloud-init-installer-{{ nixos_cloudinit_iso_version }}-x86_64.iso"
 nixos_cloudinit_iso_url: "https://github.com/AnarchoBooleanism/nixos-cloud-init-installer/releases/download/\
   {{ nixos_cloudinit_iso_version }}/{{ nixos_cloudinit_iso_name }}"
-nixos_cloudinit_iso_checksum_algorithm: sha256
-nixos_cloudinit_iso_checksum: 83726024d0fa4a5041c5512192856907b69274ce31bfdc377de1ceb745d6e242
 nixos_cloudinit_user: root
 
 # Important details for deploying with nixos-anywhere and updating flakes
 nixos_anywhere_build_remotely: false # You're free to enable this if the target system is powerful enough, or if building locally causes problems
 nixos_anywhere_target_minimum_memory: 2048 # In MiB, as going under this may lead to freezing
+nixos_rebuild_build_remotely: false # You're free to enable this if the target system is powerful enough, or if building locally causes problems
 ssh_port: 22
 uses_impermanence: false
 uses_sopsnix: false
@@ -22,4 +21,4 @@ nixos_flake_repo_url: https://github.com/AnarchoBooleanism/saphnet-nixos-configs
 nixos_flake_repo_branch: main
 
 # Important info for logging in
-nixos_username: saphnet-user # Default NixOS username here
+nixos_username: cicd # Default NixOS username here

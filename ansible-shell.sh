@@ -4,6 +4,8 @@
 # on the Dockerfile, with everything correctly mounted.
 # It is assumed that your host's working directory is the root directory of the
 # repository; the container's working directory will be /workspace.
+# Furthermore, the Docker container will come with a volume attached to "/nix" on
+# the container, to cache builds between runs.
 # Example usage:
 # ./ansible-shell.sh: Runs the default entrypoint (/bin/bash)
 # ./ansible-shell.sh /bin/bash -c "echo test": Prints "test" from within the container
@@ -14,7 +16,9 @@ set -e
 
 IMAGE_TAG="saphnet-ansible-playbook-prod-shell"
 BUILD_CONTEXT="$(pwd)/prod-shell"
+NIX_CACHE_VOLUME="ansible-shell-nix-cache"
 DOCKER_ARGS="-it --rm \
+            -v $NIX_CACHE_VOLUME:/nix \
             -v "$(pwd)":/workspace \
             -w /workspace"
 
@@ -31,6 +35,9 @@ fi
 
 echo "Creating Docker image from dev-container/Dockerfile... (this may take some time)"
 docker build -t "$IMAGE_TAG" "$BUILD_CONTEXT"
+
+echo "If the Nix cache volume isn't created, creating now..."
+docker volume create $NIX_CACHE_VOLUME
 
 echo "Now running..."
 if [ $# -eq 0 ]; then

@@ -50,7 +50,6 @@
       ansible.builtin.get_url:
         url: "{{ nixos_cloudinit_iso_url }}"
         dest: "{{ iso_directory }}/{{ nixos_cloudinit_iso_name }}"
-        # checksum: "{{ nixos_cloudinit_iso_checksum_algorithm }}:{{ nixos_cloudinit_iso_checksum }}" # TODO: Figure out what to do here with renovate
       when: not nixos_cloudinit_iso_file.stat.exists
       become: true
   vars:
