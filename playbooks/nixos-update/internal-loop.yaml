@@ -18,23 +18,23 @@
     build_remotely_here: "{{ nixos_anywhere_build_remotely_all | default(nixos_rebuild_build_remotely) | bool }}"
 
 # Set up Vault-specific SSH keys
-# - name: Create temporary directory for the SSH key from the vault
-#   ansible.builtin.tempfile:
-#     state: directory
-#     prefix: ansible-ssh-
-#   register: ssh_key_directory # To refer to this, use "ssh_key_directory.path"
-# - name: Write temporary file for the SSH public key from the vault
-#   ansible.builtin.copy: # NOTE: These steps assume ed25519 as the algorithm
-#     content: "{{ vault_cicd_ssh_key_public }}"
-#     dest: "{{ ssh_key_directory.path }}/id_ed25519.pub"
-#     mode: "0600"
-#   register: ssh_key_public # To refer to this, use "ssh_key_public.dest"
-# - name: Write temporary file for the SSH private key from the vault
-#   ansible.builtin.copy:
-#     content: "{{ vault_cicd_ssh_key_private }}"
-#     dest: "{{ ssh_key_directory.path }}/id_ed25519"
-#     mode: "0600"
-#   register: ssh_key_private # To refer to this, use "ssh_key_private.dest"
+- name: Create temporary directory for the SSH key from the vault
+  ansible.builtin.tempfile:
+    state: directory
+    prefix: ansible-ssh-
+  register: ssh_key_directory # To refer to this, use "ssh_key_directory.path"
+- name: Write temporary file for the SSH public key from the vault
+  ansible.builtin.copy: # NOTE: These steps assume ed25519 as the algorithm
+    content: "{{ vault_cicd_ssh_key_public }}"
+    dest: "{{ ssh_key_directory.path }}/id_ed25519.pub"
+    mode: "0600"
+  register: ssh_key_public # To refer to this, use "ssh_key_public.dest"
+- name: Write temporary file for the SSH private key from the vault
+  ansible.builtin.copy:
+    content: "{{ vault_cicd_ssh_key_private }}"
+    dest: "{{ ssh_key_directory.path }}/id_ed25519"
+    mode: "0600"
+  register: ssh_key_private # To refer to this, use "ssh_key_private.dest"
 
 # Update remote NixOS VM
 - name: Set facts for delegate connection # We need to do this so that we can use hostvars with this, for the SSH tasks to actually work...
