@@ -2,7 +2,7 @@
 # Control server for Ansible and Komodo, using NixOS
 # Config-specific
 secrets_files:
-  - control-server
+  - control-server-main
 
 # Hypervisor-specific
 proxmox_host: pve1.int-net.saphnet.xyz

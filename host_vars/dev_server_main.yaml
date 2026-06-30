@@ -2,7 +2,7 @@
 # Remote development server
 # Config-specific
 secrets_files:
-  - dev-server
+  - dev-server-main
 
 # Hypervisor-specific
 proxmox_host: pve4.int-net.saphnet.xyz
