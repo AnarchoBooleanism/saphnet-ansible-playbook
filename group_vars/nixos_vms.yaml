@@ -1,7 +1,7 @@
 ---
 # Information about version of nixos-cloud-init-installer, to manually update
 # renovate: datasource=github-releases depName=AnarchoBooleanism/nixos-cloud-init-installer
-nixos_cloudinit_iso_version: v2.3.0
+nixos_cloudinit_iso_version: v2.4.0
 nixos_cloudinit_iso_name: "nixos-cloud-init-installer-{{ nixos_cloudinit_iso_version }}-x86_64.iso"
 nixos_cloudinit_iso_url: "https://github.com/AnarchoBooleanism/nixos-cloud-init-installer/releases/download/\
   {{ nixos_cloudinit_iso_version }}/{{ nixos_cloudinit_iso_name }}"
