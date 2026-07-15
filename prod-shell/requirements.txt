@@ -1,7 +1,7 @@
 ansible==14.1.0
 ansible-core==2.21.1
 certifi==2026.6.17
-cffi==2.0.0
+cffi==2.1.0
 charset-normalizer==3.4.9
 cryptography==49.0.0
 idna==3.18
