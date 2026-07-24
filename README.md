@@ -18,9 +18,10 @@ Each playbook has its own subdirectory under the `playbooks` directory. Typicall
 As well, these playbooks can use files from the `common_files` directory; these files are often Jinja2 template files, for dynamic variable substition. For example, the `common_files/komodo-periphery` directory holds the files needed to run Komodo Periphery with Docker Compose; the `vps-main-provision` playbook clones these files to the VPS, dynamically inserting host-specific values that are needed for an actual deployment.
 
 ## Useful commands
-- For editing Ansible vault files (for secrets): `EDITOR=nano ansible-vault edit --vault-id <VAULT-ID>@prompt secrets/<VAULT-FILE>.yaml`
+- For editing Ansible vault files (for secrets): `EDITOR=nano ansible-vault edit --vault-id <VAULT-ID>@prompt secrets/<VAULT-FILE>.enc.yaml`
   - NOTE: This will prompt you for a password! Make sure you use the correct password for the vault ID involved, and that the vault ID itself matches what the vault file uses. Typically, the vault ID is the same as the name of the vault file itself (e.g. the vault ID of `control-server.yaml` would be `control-server`).
-- For encrypting unencrypted Ansible vault files: `ansible-vault encrypt --vault-id <VAULT-ID>@prompt secrets/<VAULT-FILE>.yaml`
+  - For files that already exist, you can skip specifying the vault ID, like with this command: `ansible-vault edit secrets/<VAULT-FILE>.enc.yaml`
+- For encrypting unencrypted Ansible vault files: `ansible-vault encrypt --vault-id <VAULT-ID>@prompt secrets/<VAULT-FILE>.enc.yaml`
   - NOTE: Again, this will prompt you for a password! Since you are defining the vault ID used here, make sure the vault ID matches what you want to use, and that you use the password you have in mind for the vault ID.
 - For running an Ansible playbook: `ansible-playbook playbooks/<PLAYBOOK-NAME>/main.yaml`
 - For running an Ansible playbook that requires a vault password: `ansible-playbook --ask-vault-pass playbooks/<PLAYBOOK-NAME>/main.yaml`
