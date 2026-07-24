@@ -255,11 +255,6 @@
         tailscale_ip: "{{ tailscale_ip_command_output.stdout }}"
       delegate_to: "{{ inventory_hostname }}"
       delegate_facts: true
-    - name: Create a network
-      community.docker.docker_network:
-        name: web_bridge # What Docker containers will use to communicate with each other and the reverse proxy
-        appends: true # To avoid removing containers if network exists
-        state: present
     - name: Create directory for Komodo Periphery
       ansible.builtin.file:
         path: /var/lib/komodo-periphery
