@@ -4,8 +4,13 @@
 # on the Dockerfile, with everything correctly mounted.
 # It is assumed that your host's working directory is the root directory of the
 # repository; the container's working directory will be /workspace.
-# Furthermore, the Docker container will come with a volume attached to "/nix" on
+
+# By default, the Docker container will come with a volume attached to "/nix" on
 # the container, to cache builds between runs.
+# If, instead, you want to use the Nix store of the host (to reduce total space used),
+# you can set the ANSIBLE_SHELL_USE_HOST_NIX environment variable to "true".
+# Example: ANSIBLE_SHELL_USE_HOST_NIX=true ./ansible-shell.sh
+
 # Example usage:
 # ./ansible-shell.sh: Runs the default entrypoint (/bin/bash)
 # ./ansible-shell.sh /bin/bash -c "echo test": Prints "test" from within the container
@@ -17,8 +22,19 @@ set -e
 IMAGE_TAG="saphnet-ansible-playbook-prod-shell"
 BUILD_CONTEXT="$(pwd)/prod-shell"
 NIX_CACHE_VOLUME="ansible-shell-nix-cache"
+
+# Whether to use host's Nix store or dedicated cache volume
+if [ "$ANSIBLE_SHELL_USE_HOST_NIX" == "true" ]; then
+    NIX_STORE_VOLUME_OPTIONS="-v /nix:/nix:ro \
+        -v /nix/var/nix/daemon-socket/socket:/nix/var/nix/daemon-socket/socket \
+        -e NIX_REMOTE=unix:///nix/var/nix/daemon-socket/socket"
+else
+    NIX_STORE_VOLUME_OPTIONS="-v $NIX_CACHE_VOLUME:/nix"
+fi
+
+# Final list of arguments to use for running Docker image
 DOCKER_ARGS="-it --rm \
-            -v $NIX_CACHE_VOLUME:/nix \
+            $NIX_STORE_VOLUME_OPTIONS \
             -v "$(pwd)":/workspace \
             -w /workspace"
 
@@ -36,8 +52,10 @@ fi
 echo "Creating Docker image from dev-container/Dockerfile... (this may take some time)"
 docker build -t "$IMAGE_TAG" "$BUILD_CONTEXT"
 
-echo "If the Nix cache volume isn't created, creating now..."
-docker volume create $NIX_CACHE_VOLUME
+if [ "$ANSIBLE_SHELL_USE_HOST_NIX" != "true" ]; then
+    echo "If the Nix cache volume isn't created, creating now..."
+    docker volume create "$NIX_CACHE_VOLUME"
+fi
 
 echo "Now running..."
 if [ $# -eq 0 ]; then

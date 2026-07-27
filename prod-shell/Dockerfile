@@ -1,6 +1,7 @@
 # Container for running the Ansible playbooks in, with all necessary packages included
 FROM alpine:3.24.1
-ENV NIXPKGS_VERSION=25.11
+# TODO: Have auto-update for nixpkgs version
+ENV NIXPKGS_VERSION=26.05
 
 # Install necessary Alpine packages
 RUN apk update
