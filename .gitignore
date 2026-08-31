@@ -4,6 +4,7 @@ galaxy_cache
 galaxy_token
 ansible_venv
 saphnet-nixos-configs
+nixos-anywhere-files
 
 .env
 .env.*

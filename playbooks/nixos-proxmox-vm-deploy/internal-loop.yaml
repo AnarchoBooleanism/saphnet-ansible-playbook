@@ -163,7 +163,20 @@
   ansible.builtin.tempfile:
     path: "../../tmp-logs"
     prefix: "nixos-anywhere-log-"
-  register: nixos_anywhere_log_file # To refer to this, use "nixos_anywhere_extras_directory.path"
+  register: nixos_anywhere_log_file # To refer to this, use "nixos_anywhere_log_file.path"
+- name: Set variable for nixos-anywhere additional extra files directory
+  ansible.builtin.set_fact:
+    nixos_anywhere_additional_extras_path: "../../nixos-anywhere-files/{{ vm_file }}"
+- name: Get state of nixos-anywhere additional extra files directory
+  ansible.builtin.stat:
+    follow: true
+    path: "{{ nixos_anywhere_additional_extras_path }}"
+  register: nixos_anywhere_additional_extras_stat
+- name: Copy additional extra files to main extra files directory
+  ansible.builtin.copy:
+    src: "{{ nixos_anywhere_additional_extras_path }}/"
+    dest: "{{ nixos_anywhere_extras_directory.path }}/"
+  when: nixos_anywhere_additional_extras_stat.stat.exists and nixos_anywhere_additional_extras_stat.stat.isdir
 - name: Generate command for nixos-anywhere
   ansible.builtin.set_fact:
     nixos_anywhere_command: |
@@ -175,6 +188,7 @@
       --target-host {{ nixos_cloudinit_user }}@{{ ip_addr }} \
       --extra-files {{ nixos_anywhere_extras_directory.path | quote }} \
       --build-on {{ 'remote' if nixos_anywhere_build_remotely else 'auto' }} \
+      {{ nixos_anywhere_extra_arguments | default('') }} \
       > {{ nixos_anywhere_log_file.path }} 2>&1 # Because Ansible does not print output in real time
 - ansible.builtin.debug:
     msg: |
