@@ -2,8 +2,6 @@
 - name: Update NixOS-based virtual machines
   hosts: localhost
   connection: local
-  # vars_files:
-  #   - ../../secrets/ansible.enc.yaml
   tasks:
     - name: Set initial list of VMs to process
       ansible.builtin.set_fact:
