@@ -39,25 +39,25 @@ DOCKER_ARGS="-it --rm \
             -w /workspace"
 
 if [ ! -d "$BUILD_CONTEXT" ]; then
-    echo "Error: Directory $BUILD_CONTEXT not found in the current working directory." >&2
+    printf "Error: Directory %s not found in the current working directory.\n" "${BUILD_CONTEXT}" >&2
     exit 1
 fi
 
 # Check if Docker is installed
 if ! command -v docker >/dev/null 2>&1; then
-    echo "Error: Docker is not installed or not in your PATH." >&2
+    printf "Error: Docker is not installed or not in your PATH.\n" >&2
     exit 1
 fi
 
-echo "Creating Docker image from dev-container/Dockerfile... (this may take some time)"
+printf "Creating Docker image from dev-container/Dockerfile... (this may take some time)\n"
 docker build -t "$IMAGE_TAG" "$BUILD_CONTEXT"
 
 if [ "$ANSIBLE_SHELL_USE_HOST_NIX" != "true" ]; then
-    echo "If the Nix cache volume isn't created, creating now..."
+    printf "If the Nix cache volume isn't created, creating now...\n"
     docker volume create "$NIX_CACHE_VOLUME"
 fi
 
-echo "Now running..."
+printf "Now running...\n"
 if [ $# -eq 0 ]; then
     exec docker run $DOCKER_ARGS "$IMAGE_TAG"
 else
