@@ -43,8 +43,6 @@ services:
       - ${PERIPHERY_ROOT_DIRECTORY:-/etc/komodo}:${PERIPHERY_ROOT_DIRECTORY:-/etc/komodo}
       # SOPS key
       - ./keys.txt:/root/.config/sops/age/keys.txt:ro
-    ## If you want to use a custom periphery config file, use command to pass it to periphery.
-    # command: periphery --config-path ${PERIPHERY_ROOT_DIRECTORY:-/etc/komodo}/periphery.config.toml
     restart: unless-stopped
     # Works around https://github.com/moghtech/komodo/issues/1525
     init: true

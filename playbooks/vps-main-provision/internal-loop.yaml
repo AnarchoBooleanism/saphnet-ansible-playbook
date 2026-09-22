@@ -261,8 +261,8 @@
         state: directory
     - name: Copy Docker Compose file for Komodo Periphery
       ansible.builtin.copy:
-        src: ../../common_files/komodo-periphery/periphery.compose.yaml
-        dest: /var/lib/komodo-periphery/periphery.compose.yaml
+        src: ../../common_files/komodo-periphery/compose.yaml
+        dest: /var/lib/komodo-periphery/compose.yaml
     - name: Copy environment variables file for Komodo Periphery
       ansible.builtin.template:
         src: ../../common_files/komodo-periphery/.env.j2
@@ -277,7 +277,7 @@
         project_name: komodo-periphery
         project_src: /var/lib/komodo-periphery
         files:
-          - periphery.compose.yaml
+          - compose.yaml
         env_files:
           - /var/lib/komodo-periphery/.env
         state: present
