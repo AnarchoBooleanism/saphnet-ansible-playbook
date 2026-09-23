@@ -29,7 +29,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Run ansible-lint
-        uses: ansible/ansible-lint@665d9e07a1943254d2910faffc106adaf7ea7294 # v26
+        uses: ansible/ansible-lint@e7f397ad6dfa20d274afa17cd7bbedd84ed136f5 # v26
         with:
           args: "--exclude secrets common_files" # Prefer to not deal with vault secrets
         continue-on-error: true
