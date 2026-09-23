@@ -1,0 +1,39 @@
+name: Docker Compose lint
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+    branches:
+      - main
+    paths:
+      - "**/compose.yaml"
+      - "**/compose.*.yaml"
+  push:
+    branches:
+      - main
+    paths:
+      - "**/compose.yaml"
+      - "**/compose.*.yaml"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: docker-compose-linter/dclint-github-action@18659f6a7956706cb67cf9c1ad5e55f4352cbc17 # v1.6.0
+        with:
+          # We want to avoid confusing the linter with Ansible files
+          path: >-
+            common_files/komodo-periphery
+          recursive: true
+          exclude: .github
+          # Rules being ignored for this repository, 
+          # we have specific needs
+          disable-rule: >-
+            no-unbound-port-interfaces
+            require-project-name-field
+            services-alphabetical-order
+        # continue-on-error: true
