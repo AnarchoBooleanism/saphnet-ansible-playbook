@@ -14,6 +14,13 @@
     loop_var: current_file
   when: (secrets_files is defined) and (secrets_files | length > 0)
 
+# Before running, make sure that the host is even accessible
+- name: Check for viable connection to host
+  ansible.builtin.wait_for:
+    host: "{{ vps_address }}"
+    port: 22
+    timeout: 5
+
 # Create SSH keys
 - name: Create temporary directory for the SSH key from the vault
   ansible.builtin.tempfile:
@@ -33,6 +40,51 @@
     mode: "0600"
   register: vps_root_ssh_key_private # To refer to this, use "vps_root_ssh_key_private.dest"
 
+# Check if can log in with password, is sign that it needs SSH key
+- name: Test SSH connection with only password
+  ansible.builtin.shell: |
+    printf "%s\n" "{{ vault_root_password }}" |
+    sshpass -d 0 \
+    ssh -o PreferredAuthentications=password \
+        -o PubkeyAuthentication=no \
+        -o StrictHostKeyChecking=no \
+        -o ConnectTimeout=5 \
+        root@{{ vps_address }} "echo SUCCESS"
+  register: ssh_password_test
+  ignore_errors: true
+  changed_when: false
+  no_log: true
+- name: Establish SSH password login status
+  ansible.builtin.set_fact:
+    ssh_password_login_works: "{{ ssh_password_test.rc == 0 and 'SUCCESS' in ssh_password_test.stdout }}"
+- name: Report SSH password login status
+  ansible.builtin.debug:
+    msg: >-
+      {% if ssh_password_login_works %}The host can be logged into via password for SSH.
+      This likely means that it has not been configured with an SSH public key yet.
+      Will add an SSH public key to it in the next step.
+      {% else %}The host cannot be logged into via password for SSH.
+      This likely means that it has been already configured with an SSH public key.
+      Skipping the SSH public key distribution step.{% endif %}
+
+# If accessible via password, then distribute the SSH key
+- name: Distribute SSH public key
+  ansible.posix.authorized_key:
+    user: root
+    key: "{{ lookup('file', vps_root_ssh_key_public.dest)}}"
+    manage_dir: true
+  vars:
+    ansible_ssh_user: root
+    ansible_connection: ssh
+    ansible_ssh_pass: "{{ hostvars[inventory_hostname]['vault_root_password'] }}"
+    ansible_become_pass: "{{ vault_root_password }}"
+    ansible_ssh_authentications: "password"
+    # By default, Ansible wants /opt/venv/bin/python3.14, which Ansible does not have
+    ansible_python_interpreter: "auto_silent" # We need this for it to work
+  delegate_facts: true
+  delegate_to: "{{ vps_address }}"
+  when: ssh_password_login_works
+
 # Main logic
 - name: Set facts for delegate connection # We need to do this so that we can use hostvars with this, for the SSH tasks to actually work...
   ansible.builtin.set_fact:
@@ -44,6 +96,7 @@
     ansible_ssh_private_key_file: "{{ hostvars[inventory_hostname]['delegate_ssh_key_file'] }}"
     ansible_become_pass: "{{ vault_root_password }}"
     ansible_ssh_extra_args: "-o IdentitiesOnly=yes"
+    ansible_python_interpreter: "auto_silent"
   delegate_facts: true
   delegate_to: "{{ vps_address }}"
   block:
@@ -143,7 +196,7 @@
         name: "{{ main_username }}"
         password: "{{ vault_main_password_hash }}"
         shell: /bin/bash
-        groups: sudo,docker
+        groups: sudo
         append: yes
     - name: Set authorized key taken from file
       ansible.posix.authorized_key:

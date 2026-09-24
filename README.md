@@ -42,6 +42,8 @@ As well, these playbooks can use files from the `common_files` directory; these 
 ## Note on using Ansible (+ Nix)
 To run the Ansible playbooks in this repository, you will need to have Ansible installed on your system's environment, whether through your system's package manager or through Python (via `pip`). Alongside Ansible, you will also need to have the `community.general` collection installed, to access functionality for Proxmox and more; the `community.general` collection is generally included with complete Ansible installations, but it, itself, is not part of `ansible-core`.
 
+You will also want to make sure to have access to the `sshpass` utility for various playbooks (e.g. vps-main-provision).
+
 If running playbooks that make use of Nix (e.g. `nixos-proxmox-vm-deploy`, for deploying NixOS VMs on Proxmox hosts), you will also need to have Nix installed on your system's environment; as well, Nix will need to be configured with `flakes`, `nix-commands`, and `pipe-operators` enabled in `experimental-features`, within your `nix.conf` file (or your NixOS configuration).
 
 ### Using `ansible-shell.sh` (Docker-based approach)

@@ -5,7 +5,7 @@ ENV NIXPKGS_VERSION=26.05
 
 # Install necessary Alpine packages
 RUN apk update
-RUN apk add --no-cache bash git nix openssh python3 py3-pip py3-virtualenv
+RUN apk add --no-cache bash git nix openssh python3 py3-pip py3-virtualenv sshpass
 
 # Create Python virtual environment to install stuff in
 ENV VIRTUAL_ENV="/opt/venv"
