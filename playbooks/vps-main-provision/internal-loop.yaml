@@ -143,7 +143,7 @@
         name: "{{ main_username }}"
         password: "{{ vault_main_password_hash }}"
         shell: /bin/bash
-        groups: sudo,docker
+        groups: sudo
         append: yes
     - name: Set authorized key taken from file
       ansible.posix.authorized_key:
