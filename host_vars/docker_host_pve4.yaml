@@ -20,7 +20,8 @@ cpu_limit: 1 # For some reason, cpulimit is an integer?
 # cpu_limit: 0.9 # We use all the cores, trying to let other processes be able to run if maxing out
 cpu_cores: 8
 ram_total: 12288 # Is in MiB
-disk_size: 128 # Is in GiB
+disk_0_size: 128 # Is in GiB
+disk_1_size: 128 # Is in GiB
 vm_storage: local-zfs
 iso_storage: local
 iso_directory: /var/lib/vz/template/iso # Matches "local"
@@ -43,10 +44,16 @@ vm_config:
   citype: nocloud # "nocloud" for Linux, "configdrive2" for Windows
 
 disks:
-  - vmid: "{{ vm_id }}" # Main drive
+  - vmid: "{{ vm_id }}" # Root drive
     disk: scsi0
     storage: "{{ vm_storage }}"
-    size: "{{ disk_size }}"
+    size: "{{ disk_0_size }}"
+    mbps_rd: 375 # We use SATA SSDs, so we want to stick to 3Gbps to avoid hogging disk IO
+    mbps_wr: 375
+  - vmid: "{{ vm_id }}" # /home drive
+    disk: scsi1
+    storage: "{{ vm_storage }}"
+    size: "{{ disk_1_size }}"
     mbps_rd: 375 # We use SATA SSDs, so we want to stick to 3Gbps to avoid hogging disk IO
     mbps_wr: 375
 
