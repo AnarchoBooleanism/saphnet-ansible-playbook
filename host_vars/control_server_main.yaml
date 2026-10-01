@@ -18,7 +18,8 @@ ip_gateway: 192.168.8.1
 ssh_port: 22
 cpu_cores: 2
 ram_total: 1024 # Is in MiB
-disk_size: 48 # Is in GiB
+disk_0_size: 48 # Is in GiB
+disk_1_size: 16 # Is in GiB
 vm_storage: local-zfs
 iso_storage: sdcard
 iso_directory: /mnt/sdcard/template/iso # Matches "sdcard"
@@ -37,10 +38,16 @@ vm_config:
   citype: nocloud # "nocloud" for Linux, "configdrive2" for Windows
 
 disks:
-  - vmid: "{{ vm_id }}" # Main drive
+  - vmid: "{{ vm_id }}" # Root drive
     disk: scsi0
     storage: "{{ vm_storage }}"
-    size: "{{ disk_size }}"
+    size: "{{ disk_0_size }}"
+    mbps_rd: 375 # We use SATA SSDs, so we want to stick to 3Gbps to avoid hogging disk IO
+    mbps_wr: 375
+  - vmid: "{{ vm_id }}" # /home drive
+    disk: scsi1
+    storage: "{{ vm_storage }}"
+    size: "{{ disk_1_size }}"
     mbps_rd: 375 # We use SATA SSDs, so we want to stick to 3Gbps to avoid hogging disk IO
     mbps_wr: 375
 
