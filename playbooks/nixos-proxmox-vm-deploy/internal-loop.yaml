@@ -181,16 +181,25 @@
   ansible.builtin.set_fact:
     nixos_anywhere_command: |
       nix run github:nix-community/nixos-anywhere -- \
-      --flake {{ nixos_configs_directory.path }}#{{ nixos_config_name }} \
+      --flake {{ nixos_configs_directory.path ~ '#' ~ nixos_config_name | quote}}" \
       --generate-hardware-config nixos-generate-config \
-        {{ nixos_configs_directory.path + '/instances/' + nixos_config_name + '/hardware-configuration.nix' | quote}} \
-      -i "{{ temp_ssh_key_directory.path + '/id_ed25519' | quote }}" -p {{ ssh_port }} \
-      --target-host {{ nixos_cloudinit_user }}@{{ ip_addr }} \
+        {{ nixos_configs_directory.path ~ '/instances/' ~ nixos_config_name ~ '/hardware-configuration.nix' | quote}} \
+      -i {{ temp_ssh_key_directory.path ~ '/id_ed25519' | quote }} -p {{ ssh_port }} \
+      --target-host {{ nixos_cloudinit_user ~ '@' ~ ip_addr | quote}} \
       --extra-files {{ nixos_anywhere_extras_directory.path | quote }} \
       --build-on {{ 'remote' if nixos_anywhere_build_remotely else 'auto' }} \
       {{ nixos_anywhere_extra_arguments | default('') }} \
-      > {{ nixos_anywhere_log_file.path }} 2>&1 # Because Ansible does not print output in real time
-- ansible.builtin.debug:
+      >> {{ nixos_anywhere_log_file.path | quote }} 2>&1 # Because Ansible does not print output in real time
+- name: Write command to log file
+  ansible.builtin.blockinfile:
+    path: "{{ nixos_anywhere_log_file.path }}"
+    block: |
+      Command generated for nixos-anywhere:
+      {{ nixos_anywhere_command }}
+    append_newline: true
+    create: true
+- name: Display note on log file
+  ansible.builtin.debug:
     msg: |
       nixos-anywhere may take a while to run, and you won't see any output here in the meanwhile.
       To see its output in real-time, run this command (you may need to use sudo): "tail -f {{ nixos_anywhere_log_file.path }}"
