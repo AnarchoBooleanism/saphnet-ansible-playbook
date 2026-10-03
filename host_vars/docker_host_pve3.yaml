@@ -47,7 +47,7 @@ vm_config:
   citype: nocloud # "nocloud" for Linux, "configdrive2" for Windows
 
 disks:
-  - vmid: "{{ vm_id }}" # Root drive
+  - vmid: "{{ vm_id }}" # Data drive
     disk: scsi0
     storage: "{{ vm_storage }}"
     size: "{{ disk_0_size }}"
