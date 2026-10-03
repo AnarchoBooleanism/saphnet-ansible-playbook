@@ -51,6 +51,7 @@ disks:
     disk: scsi0
     storage: "{{ vm_storage }}"
     size: "{{ disk_0_size }}"
+    backup: false
     mbps_rd: 375 # We use SATA SSDs, so we want to stick to 3Gbps to avoid hogging disk IO
     mbps_wr: 375
   - vmid: "{{ vm_id }}" # /home drive
