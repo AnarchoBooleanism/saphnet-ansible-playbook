@@ -36,10 +36,10 @@
         dest: "{{ proxmox_ssh_key_directory.path }}/id_ed25519"
         mode: "0600"
       register: proxmox_ssh_key_private # To refer to this, use "proxmox_ssh_key_private.dest"
-    - name: Create temporary directory for Git repo for NixOS flakes configurations 
+    - name: Create temporary directory for Git repo for NixOS flakes configurations
       ansible.builtin.tempfile:
         state: directory
-        prefix: nixos-proxmox-vm-deploy-nixos-configs
+        prefix: nixos-proxmox-vm-deploy-nixos-configs-
       register: nixos_configs_directory # To refer to this, use "nixos_configs_directory.path"
     - name: Clone Git repo for NixOS flake configurations
       ansible.builtin.git:
