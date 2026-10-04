@@ -56,3 +56,5 @@ When given any number of arguments, `ansible-shell.sh` will treat it as a comman
 Note that, by default, `ansible-shell.sh` also creates a Docker volume, named `ansible-shell-nix-cache`, mounted to the container at `/nix`, to serve as a Nix build cache, to cache results between runs, for NixOS-related playbooks. This should allow for less repeated work, and, hence, less time spent building; however, this does come at the cost of the Nix build cache using extra storage, even after any playbooks are finished running.
 
 If, instead, you want to use the Nix store of the host (e.g. to reduce total storage used), you can set the environment variable, `ANSIBLE_SHELL_USE_HOST_NIX` to `true`, when running `ansible-shell.sh`. This assumes that the host has Nix installed and its daemon actively running.
+
+As well, by default, the Docker container will run with the UID and GID of the current shell. To set a custom UID/GID, set the environment variables, `PUID` and or `PGID`.
