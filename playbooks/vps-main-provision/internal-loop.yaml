@@ -302,6 +302,7 @@
         | tr -d '\n'
       args:
         executable: /bin/bash
+      changed_when: false
       register: tailscale_ip_command_output
     - name: Set fact for Tailscale IP address
       ansible.builtin.set_fact:

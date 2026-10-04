@@ -1,0 +1,22 @@
+---
+# NOTE: Be sure to add "ansible" user with sudo abilities and SSH keys before running! Probably with bootstrap script (should do creating of accounts, files, joining to cluster, to be barely ready)
+- name: Create Proxmox VMs with dynamic hardware configurations
+  hosts: pve_hosts
+  connection: local # TODO: What to do here?
+  vars_files: # TODO: Check this is just proxmox
+    - ../../secrets/proxmox.enc.yaml
+  tasks:
+    # Create consistent interface names for Proxmox, as a loop, with template file, filled in with host_vars file details for MAC address, interface name
+    # For laptop, set HandleLidSwitch option
+    # For laptop, mount SD card for directory, then add as Storage
+    # Enable wake-on-lan with secondary interface
+    # For pve3, modify systemd-boot to enable Arc GPU passthrough, as well as VFIO, etc, proxmox-boot-tool refresh?
+    # Run the Proxmox post-install script
+    # Install stuff like intel-microcode, have a list actually in host_vars and/or group_vars
+    # Install Netdata, use template files to set up API keys
+    # Set up NUT client
+    # Set up Tailscale
+    # Set up Glances
+    # Set up Cronjob for auto-backup of /etc, also make sure rclone config is touched
+    # Set up Powertop
+    # Reboot?
