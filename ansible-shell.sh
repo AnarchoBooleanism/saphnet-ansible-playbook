@@ -11,6 +11,9 @@
 # you can set the ANSIBLE_SHELL_USE_HOST_NIX environment variable to "true".
 # Example: ANSIBLE_SHELL_USE_HOST_NIX=true ./ansible-shell.sh
 
+# As well, by default, the Docker container will run with the UID and GID of the current
+# shell. To set a custom UID/GID, set the environment variables, PUID and/or PGID!
+
 # Example usage:
 # ./ansible-shell.sh: Runs the default entrypoint (/bin/bash)
 # ./ansible-shell.sh /bin/bash -c "echo test": Prints "test" from within the container
@@ -34,6 +37,7 @@ fi
 
 # Final list of arguments to use for running Docker image
 DOCKER_ARGS="-it --rm \
+            --user ${PUID:-$(id -u)}:${PGID:-$(id -g)} \
             $NIX_STORE_VOLUME_OPTIONS \
             -v "$(pwd)":/workspace \
             -w /workspace"
