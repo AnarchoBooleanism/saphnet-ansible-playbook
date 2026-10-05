@@ -12,8 +12,8 @@
       ansible.builtin.set_fact:
         final_vm_list: >-
           {{
-            [target_vm_name]
-            if target_vm_name is defined
+            target_vm_names | split(',')
+            if target_vm_names is defined and target_vm_names | length > 0
             else vm_list
           }}
     - name: Load NixOS-specific configuration file
