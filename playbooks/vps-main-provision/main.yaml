@@ -10,8 +10,8 @@
       ansible.builtin.set_fact:
         final_vps_list: >-
           {{
-            [target_vps_name]
-            if target_vps_name is defined
+            target_vps_names | split(',')
+            if target_vps_names is defined and target_vps_names | length > 0
             else vps_list
           }}
     # NOTE: Before running this script for your VPS, make sure it has the right SSH key and password set for root!
