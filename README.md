@@ -59,3 +59,7 @@ Note that, by default, `ansible-shell.sh` also creates a Docker volume, named `a
 If, instead, you want to use the Nix store of the host (e.g. to reduce total storage used), you can set the environment variable, `ANSIBLE_SHELL_USE_HOST_NIX` to `true`, when running `ansible-shell.sh`. This assumes that the host has Nix installed and its daemon actively running.
 
 As well, by default, the Docker container will run with the UID and GID of the current shell. To set a custom UID/GID, set the environment variables, `PUID` and or `PGID`.
+
+To pass extra arguments to `docker run`, set the environment variable `DOCKER_ARGS`.
+
+It is also assumed that the workspace directory (containing the Ansible playbook and prod-shell) is the current working directory of the shell. If this is not, then you can set the `WORKSPACE_DIR` environment variable with your desired location.

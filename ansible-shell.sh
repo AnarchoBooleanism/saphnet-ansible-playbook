@@ -14,16 +14,22 @@
 # As well, by default, the Docker container will run with the UID and GID of the current
 # shell. To set a custom UID/GID, set the environment variables, PUID and/or PGID!
 
+# To set extra arguments to pass to "docker run", set the DOCKER_ARGS environment variable.
+# It is also assumed that the workspace directory (containing the Ansible playbook and
+# prod-shell) is the current working directory of the shell. If this is not, then you can
+# set the WORKSPACE_DIR environment variable with your desired location.
+
 # Example usage:
 # ./ansible-shell.sh: Runs the default entrypoint (/bin/bash)
-# ./ansible-shell.sh /bin/bash -c "echo test": Prints "test" from within the container
+# ./ansible-shell.sh echo test: Prints "test" from within the container
 # ./ansible-shell.sh ansible --help: Prints help documentation for the "ansible" command
 
 # Exit on any failure
 set -e
 
+WORKSPACE_DIR="${WORKSPACE_DIR:-$(pwd)}"
 IMAGE_TAG="saphnet-ansible-playbook-prod-shell"
-BUILD_CONTEXT="$(pwd)/prod-shell"
+BUILD_CONTEXT="${WORKSPACE_DIR}/prod-shell"
 NIX_CACHE_VOLUME="ansible-shell-nix-cache"
 
 # Whether to use host's Nix store or dedicated cache volume
@@ -34,13 +40,6 @@ if [ "$ANSIBLE_SHELL_USE_HOST_NIX" == "true" ]; then
 else
     NIX_STORE_VOLUME_OPTIONS="-v $NIX_CACHE_VOLUME:/nix"
 fi
-
-# Final list of arguments to use for running Docker image
-DOCKER_ARGS="-it --rm \
-            --user ${PUID:-$(id -u)}:${PGID:-$(id -g)} \
-            $NIX_STORE_VOLUME_OPTIONS \
-            -v "$(pwd)":/workspace \
-            -w /workspace"
 
 if [ ! -d "$BUILD_CONTEXT" ]; then
     printf "Error: Directory %s not found in the current working directory.\n" "${BUILD_CONTEXT}" >&2
@@ -62,9 +61,12 @@ if [ "$ANSIBLE_SHELL_USE_HOST_NIX" != "true" ]; then
 fi
 
 printf "Now running...\n"
-if [ $# -eq 0 ]; then
-    exec docker run $DOCKER_ARGS "$IMAGE_TAG"
-else
-    # Allows us to easily just pass in any command to be run within Bash
-    exec docker run $DOCKER_ARGS --entrypoint "/bin/bash" "$IMAGE_TAG" -c "$*"
-fi
+
+exec docker run -it --rm \
+    $DOCKER_ARGS \
+    -e "PUID=${PUID:-$(id -u)}" \
+    -e "PGID=${PGID:-$(id -g)}" \
+    $NIX_STORE_VOLUME_OPTIONS \
+    -v "${WORKSPACE_DIR}:/workspace" \
+    -w /workspace \
+    "$IMAGE_TAG" "$@"
