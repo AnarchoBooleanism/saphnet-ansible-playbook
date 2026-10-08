@@ -5,7 +5,7 @@ ENV NIXPKGS_VERSION=26.05
 
 # Install necessary Alpine packages
 RUN apk update
-RUN apk add --no-cache bash git nix openssh python3 py3-pip py3-virtualenv sshpass
+RUN apk add --no-cache bash git nix openssh python3 py3-pip py3-virtualenv sshpass su-exec shadow
 
 # Create Python virtual environment to install stuff in
 ENV VIRTUAL_ENV="/opt/venv"
@@ -21,5 +21,10 @@ RUN nix-channel --add https://nixos.org/channels/nixos-$NIXPKGS_VERSION nixpkgs 
     && nix-channel --update
 COPY nix.conf /etc/nix/
 
-ENV HOME="/home/user"
-ENTRYPOINT ["/bin/bash"]
+# Entrypoint
+COPY entrypoint.sh /usr/local/bin
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+ENV HOME="/home/ansible"
+ENV ANSIBLE_LOCAL_TEMP="/tmp"
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
