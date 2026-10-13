@@ -5,14 +5,14 @@
   tasks:
     - name: Set initial list of VMs to process
       ansible.builtin.set_fact:
-        vm_list: "{{ groups['nixos_hosts'] }}"
+        default_host_list: "{{ groups['nixos_hosts'] }}"
     - name: Set final list of VMs to process
       ansible.builtin.set_fact:
-        final_vm_list: >-
+        final_host_list: >-
           {{
-            target_vm_names | split(',')
-            if target_vm_names is defined and target_vm_names | length > 0
-            else vm_list
+            (target_host_names | default('') | split(',') | reject('equalto', '') | list)
+            | default(host_list, true)
+            | difference(exclude_host_names | default('') | split(',') | reject('equalto', '') | list)
           }}
     - name: Load NixOS-specific configuration file
       ansible.builtin.include_vars:
@@ -23,6 +23,6 @@
         state: directory
     - name: Update each VM # This is the main guts of our logic here
       include_tasks: internal-loop.yaml
-      loop: "{{ final_vm_list }}"
+      loop: "{{ final_host_list }}"
       loop_control:
-        loop_var: vm_file
+        loop_var: host_file

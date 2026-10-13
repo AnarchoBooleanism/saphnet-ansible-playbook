@@ -8,7 +8,7 @@
     file: "../../group_vars/nixos_vms.yaml"
 - name: Load VM-specific configuration file
   ansible.builtin.include_vars:
-    file: "../../host_vars/{{ vm_file }}.yaml"
+    file: "../../host_vars/{{ host_file }}.yaml"
 - name: Load config-specific secrets
   ansible.builtin.include_vars:
     file: "../../secrets/{{ current_file }}.enc.yaml"
@@ -166,7 +166,7 @@
   register: nixos_anywhere_log_file # To refer to this, use "nixos_anywhere_log_file.path"
 - name: Set variable for nixos-anywhere additional extra files directory
   ansible.builtin.set_fact:
-    nixos_anywhere_additional_extras_path: "../../nixos-anywhere-files/{{ vm_file }}"
+    nixos_anywhere_additional_extras_path: "../../nixos-anywhere-files/{{ host_file }}"
 - name: Get state of nixos-anywhere additional extra files directory
   ansible.builtin.stat:
     follow: true

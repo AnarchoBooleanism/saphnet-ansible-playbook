@@ -5,18 +5,18 @@
   tasks:
     - name: Set initial list of VPSes to process
       ansible.builtin.set_fact:
-        vps_list: "{{ groups['vps_main'] }}"
-    - name: Set final list of VPSes to process
+        host_list: "{{ groups['vps_main'] }}"
+    - name: Set final list of hosts to process
       ansible.builtin.set_fact:
-        final_vps_list: >-
+        final_host_list: >-
           {{
-            target_vps_names | split(',')
-            if target_vps_names is defined and target_vps_names | length > 0
-            else vps_list
+            (target_host_names | default('') | split(',') | reject('equalto', '') | list)
+            | default(default_host_list, true)
+            | difference(exclude_host_names | default('') | split(',') | reject('equalto', '') | list)
           }}
     # NOTE: Before running this script for your VPS, make sure it has the right SSH key and password set for root!
     - name: Dynamically create/update each VPS # This is the main guts of our logic here
       include_tasks: internal-loop.yaml
-      loop: "{{ final_vps_list }}"
+      loop: "{{ final_host_list }}"
       loop_control:
-        loop_var: vps_file
+        loop_var: host_file
