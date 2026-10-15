@@ -11,7 +11,7 @@
         final_host_list: >-
           {{
             (target_host_names | default('') | split(',') | reject('equalto', '') | list)
-            | default(host_list, true)
+            | default(default_host_list, true)
             | difference(exclude_host_names | default('') | split(',') | reject('equalto', '') | list)
           }}
     - name: Load NixOS-specific configuration file
