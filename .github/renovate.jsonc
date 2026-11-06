@@ -10,13 +10,5 @@
   // Package rules
   "packageRules": [
     // Package groups (for tightly-bound packages)
-    {
-      "groupName": "ansible",
-      "matchFileNames": ["prod-shell/requirements.txt"],
-      "matchPackageNames": [
-        "ansible",
-        "ansible-core"
-      ]
-    }
   ]
 }
