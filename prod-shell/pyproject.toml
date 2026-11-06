@@ -1,0 +1,11 @@
+[project]
+name = "prod-shell"
+version = "0.1.0"
+description = "Basic production shell for saphnet-ansible-playbook"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "ansible>=14.6.0",
+    "proxmoxer>=2.3.0",
+    "requests>=2.34.2",
+]

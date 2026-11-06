@@ -31,12 +31,12 @@ if [ -n "$EXISTING_USER" ]; then
     usermod -a "$ACTUAL_GROUP" "$ACTUAL_USER" >/dev/null 2>&1 || true
 else
     ACTUAL_USER="$USER_NAME"
-    adduser -D -u "$USER_ID" -G "$ACTUAL_GROUP" -h "/home/$USER_NAME" "$USER_NAME"
+    useradd -m -u "$USER_ID" -G "$ACTUAL_GROUP" -s /bin/bash -d "/home/$USER_NAME" "$USER_NAME"
 fi
 
 if [ $# -eq 0 ]; then
     # Default behavior
-    exec su-exec "$USER_ID" /bin/bash
+    exec gosu "$USER_ID" /bin/bash
 else
-    exec su-exec "$USER_ID" "$@"
+    exec gosu "$USER_ID" "$@"
 fi
