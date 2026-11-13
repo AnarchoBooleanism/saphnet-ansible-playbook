@@ -30,7 +30,7 @@ COPY --from=venv-builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:/opt/python/bin:$PATH"
 
 # renovate: datasource=github-tags depName=NixOS/nixpkgs
-ARG NIXPKGS_VERSION=26.05
+ARG NIXPKGS_VERSION=v208
 
 # Configure nix
 RUN nix-channel --add https://nixos.org/channels/nixos-$NIXPKGS_VERSION nixpkgs \
